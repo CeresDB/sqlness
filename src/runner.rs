@@ -12,6 +12,21 @@ use crate::case::TestCase;
 use crate::error::{Result, SqlnessError};
 use crate::{config::Config, environment::Environment};
 
+/// The entrypoint of this crate.
+///
+/// To run your integration test cases, simply [`new`] a `Runner` and [`run`] it.
+///
+/// [`new`]: crate::Runner#method.new
+/// [`run`]: crate::Runner#method.run
+///
+/// ```rust, no_run
+/// async fn run_integration_test() {
+///     let runner = Runner::new(root_path, env).await;
+///     runner.run().await;
+/// }
+/// ```
+///
+/// For more detailed explaination, refer to crate level documentment.
 pub struct Runner<E: Environment> {
     config: Config,
     env: Arc<E>,
@@ -95,7 +110,7 @@ impl<E: Environment> Runner<E> {
             start.elapsed().as_millis()
         );
 
-        return Ok(());
+        Ok(())
     }
 
     async fn collect_case_paths(&self, env: &str) -> Result<Vec<PathBuf>> {
