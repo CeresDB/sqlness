@@ -2,7 +2,9 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
 
-use tokio::fs::{read_dir, File, OpenOptions};
+use prettydiff::basic::DiffOp;
+use prettydiff::diff_lines;
+use tokio::fs::{read_dir, remove_file, File, OpenOptions};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::time::Instant;
 use walkdir::WalkDir;
@@ -89,6 +91,7 @@ impl<E: Environment> Runner<E> {
         // todo: read env config
         let db = self.env.start(&env, None).await;
         let case_paths = self.collect_case_paths(&env).await?;
+        let mut diff_cases = vec![];
         let start = Instant::now();
         for path in case_paths {
             let case_path = path.with_extension(&self.config.test_case_extension);
@@ -101,8 +104,12 @@ impl<E: Environment> Runner<E> {
             let elapsed = timer.elapsed();
 
             output_file.flush().await?;
-
-            // todo: check diff
+            let is_different = self.compare(&path).await?;
+            if !is_different {
+                remove_file(output_path).await?;
+            } else {
+                diff_cases.push(path.as_os_str().to_str().unwrap().to_owned());
+            }
 
             println!(
                 "Test case {:?} finished, cost: {}ms",
@@ -117,7 +124,15 @@ impl<E: Environment> Runner<E> {
             start.elapsed().as_millis()
         );
 
-        Ok(())
+        if !diff_cases.is_empty() {
+            println!("Different cases:");
+            println!("{:#?}", diff_cases);
+            Err(SqlnessError::RunFailed {
+                count: diff_cases.len(),
+            })
+        } else {
+            Ok(())
+        }
     }
 
     async fn collect_case_paths(&self, env: &str) -> Result<Vec<PathBuf>> {
@@ -156,5 +171,39 @@ impl<E: Environment> Runner<E> {
             .write(true)
             .open(&path)
             .await?)
+    }
+
+    /// Compare files' diff, return true if two files are different
+    async fn compare<P: AsRef<Path>>(&self, path: P) -> Result<bool> {
+        let mut result_lines = vec![];
+        File::open(
+            path.as_ref()
+                .with_extension(&self.config.expect_result_extension),
+        )
+        .await?
+        .read_to_end(&mut result_lines)
+        .await?;
+        let result_lines = String::from_utf8(result_lines)?;
+
+        let mut output_lines = vec![];
+        File::open(
+            path.as_ref()
+                .with_extension(&self.config.output_result_extension),
+        )
+        .await?
+        .read_to_end(&mut output_lines)
+        .await?;
+        let output_lines = String::from_utf8(output_lines)?;
+
+        let diff = diff_lines(&result_lines, &output_lines)
+            .set_diff_only(true)
+            .names("Expected", "Actual");
+        let is_different = diff.diff().iter().any(|d| !matches!(d, DiffOp::Equal(_)));
+        if is_different {
+            println!("Result unexpected, path:{:?}\n", path.as_ref());
+            diff.prettytable();
+        }
+
+        Ok(is_different)
     }
 }
