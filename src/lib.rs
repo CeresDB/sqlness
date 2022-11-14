@@ -3,7 +3,24 @@
 //! ## Usage
 //!
 //! The entrypoint of this crate is [Runner] struct. It runs your test cases and
-//! compare the result.
+//! compare the result. There are three things you need to do to complete an
+//! integration test:
+//! - Prepare the test case (of course!)
+//! - Implement [`Environment`] and [`Database`]. They provide methods to start
+//!   the server, submit the query and clean up etc.
+//! - Format the result. Implement [`Display`] for your query result to make them
+//!   comparable.
+//!
+//! And then all you need is to run the runner!
+//!
+//! ```rust, no_run
+//! async fn run_integration_test() {
+//!     let runner = Runner::new(root_path, env).await;
+//!     runner.run().await;
+//! }
+//! ```
+//!
+//! [`Display`]: std::fmt::Display
 //!
 //! ## Directory organization
 //!
