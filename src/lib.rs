@@ -25,7 +25,7 @@
 //! ```
 //!
 //! Here the root dir is `sqlness`, it contains two sub-directories for different
-//! [`Envoronment`]s `local` and `remote`. Each environment has an env-specific
+//! [`Environment`]s `local` and `remote`. Each environment has an env-specific
 //! configuration `config.toml`. All the test cases are placed under corresponding
 //! environment directory.
 //!
@@ -41,7 +41,7 @@ mod environment;
 mod error;
 mod runner;
 
-pub use config::Config;
+pub use config::{Config, ConfigBuilder};
 pub use database::Database;
 pub use environment::Environment;
 pub use error::SqlnessError;
