@@ -1,22 +1,25 @@
+use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-/// The root configurations.
+/// Configurations of [`Runner`].
 ///
-/// This struct is not intended to be used directly. It is deserialized from the
-/// toml file passed to [`Runner::new`].
-///
-/// [`Runner::new`]: crate::Runner#method.new
-#[derive(Debug, Serialize, Deserialize)]
+/// [`Runner`]: crate::Runner
+#[derive(Debug, Serialize, Deserialize, Builder)]
 pub struct Config {
     pub case_dir: String,
-    /// Default value: `.sql`
+    /// Default value: `sql`
+    #[builder(default = "String::from(\"sql\")")]
     pub test_case_extension: String,
-    /// Default value: `.output`
+    /// Default value: `output`
+    #[builder(default = "String::from(\"output\")")]
     pub output_result_extension: String,
-    /// Default value: `.result`
+    /// Default value: `result`
+    #[builder(default = "String::from(\"result\")")]
     pub expect_result_extension: String,
     /// Default value: `-- SQLNESS`
+    #[builder(default = "String::from(\"-- SQLNESS\")")]
     pub interceptor_prefix: String,
     /// Default value: `config.toml`
+    #[builder(default = "String::from(\"config.toml\")")]
     pub env_config_file: String,
 }

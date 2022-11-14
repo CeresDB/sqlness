@@ -1,4 +1,3 @@
-use std::os::unix::prelude::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
@@ -56,6 +55,13 @@ impl<E: Environment> Runner<E> {
         })
     }
 
+    pub async fn new_with_config(config: Config, env: E) -> Result<Self> {
+        Ok(Self {
+            config,
+            env: Arc::new(env),
+        })
+    }
+
     pub async fn run(&self) -> Result<()> {
         let environments = self.collect_env().await?;
         for env in environments {
@@ -85,7 +91,8 @@ impl<E: Environment> Runner<E> {
         let case_paths = self.collect_case_paths(&env).await?;
         let start = Instant::now();
         for path in case_paths {
-            let case = TestCase::from_file(&path, &self.config).await?;
+            let case_path = path.with_extension(&self.config.test_case_extension);
+            let case = TestCase::from_file(case_path, &self.config).await?;
             let output_path = path.with_extension(&self.config.output_result_extension);
             let mut output_file = Self::open_output_file(&output_path).await?;
 
@@ -117,14 +124,15 @@ impl<E: Environment> Runner<E> {
         let mut root = PathBuf::from_str(&self.config.case_dir).unwrap();
         root.push(env);
 
-        let mut cases: Vec<_> = WalkDir::new(root)
+        let test_case_extension = self.config.test_case_extension.as_str();
+        let mut cases: Vec<_> = WalkDir::new(&root)
             .into_iter()
             .filter_map(|entry| {
                 entry
                     .map_or(None, |entry| Some(entry.path().to_path_buf()))
                     .filter(|path| {
                         path.extension()
-                            .map(|ext| ext.as_bytes() == self.config.test_case_extension.as_bytes())
+                            .map(|ext| ext == test_case_extension)
                             .unwrap_or(false)
                     })
             })
