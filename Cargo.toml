@@ -2,7 +2,13 @@
 name = "sqlness"
 version = "0.1.0"
 edition = "2021"
-authors = ["Ruihang Xia <waynestxia@gmail.com"]
+authors = [
+    "CeresDB Authors <ceresdbservice@gmail.com>",
+    "Ruihang Xia <waynestxia@gmail.com>",
+]
+repository = "https://github.com/CeresDB/sqlness"
+license = "Apache-2.0"
+description = "SQL integration test harness"
 
 [dependencies]
 async-trait = "0.1"
