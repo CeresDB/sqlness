@@ -124,6 +124,9 @@ impl<E: Environment> Runner<E> {
             start.elapsed().as_millis()
         );
 
+        // stop this env
+        self.env.stop(&env, db).await;
+
         if !diff_cases.is_empty() {
             println!("Different cases:");
             println!("{:#?}", diff_cases);
