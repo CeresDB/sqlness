@@ -23,8 +23,8 @@ pub trait Environment {
     /// And the config file's path to this environment if it's find, it's defined
     /// by the `env_config_file` field in the root config toml, and the default
     /// value is `config.toml`.
-    async fn start(&self, mode: &str, config: Option<String>) -> Self::DB;
+    async fn start(&self, env: &str, config: Option<String>) -> Self::DB;
 
     /// Stop one [`Database`].
-    async fn stop(&self, mode: &str, database: Self::DB);
+    async fn stop(&self, env: &str, database: Self::DB);
 }

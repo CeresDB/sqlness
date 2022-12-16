@@ -30,7 +30,7 @@ use crate::{config::Config, environment::Environment};
 /// For more detailed explaination, refer to crate level documentment.
 pub struct Runner<E: Environment> {
     config: Config,
-    env: Arc<E>,
+    env_controller: Arc<E>,
 }
 
 impl<E: Environment> Runner<E> {
@@ -53,14 +53,14 @@ impl<E: Environment> Runner<E> {
 
         Ok(Self {
             config,
-            env: Arc::new(env),
+            env_controller: Arc::new(env),
         })
     }
 
     pub async fn new_with_config(config: Config, env: E) -> Result<Self> {
         Ok(Self {
             config,
-            env: Arc::new(env),
+            env_controller: Arc::new(env),
         })
     }
 
@@ -68,11 +68,11 @@ impl<E: Environment> Runner<E> {
         let environments = self.collect_env().await?;
         for env in environments {
             // todo: read env config
-            let db = self.env.start(&env, None).await;
+            let db = self.env_controller.start(&env, None).await;
             if let Err(e) = self.run_env(&env, &db).await {
                 println!("Environment {} run failed with error {:?}", env, e);
             }
-            self.env.stop(&env, db).await;
+            self.env_controller.stop(&env, db).await;
         }
 
         Ok(())
