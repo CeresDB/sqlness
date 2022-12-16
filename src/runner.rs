@@ -30,7 +30,7 @@ use crate::{config::Config, environment::Environment};
 /// For more detailed explaination, refer to crate level documentment.
 pub struct Runner<E: Environment> {
     config: Config,
-    env: Arc<E>,
+    env_controller: Arc<E>,
 }
 
 impl<E: Environment> Runner<E> {
@@ -53,21 +53,26 @@ impl<E: Environment> Runner<E> {
 
         Ok(Self {
             config,
-            env: Arc::new(env),
+            env_controller: Arc::new(env),
         })
     }
 
     pub async fn new_with_config(config: Config, env: E) -> Result<Self> {
         Ok(Self {
             config,
-            env: Arc::new(env),
+            env_controller: Arc::new(env),
         })
     }
 
     pub async fn run(&self) -> Result<()> {
         let environments = self.collect_env().await?;
         for env in environments {
-            self.run_env(env).await?;
+            // todo: read env config
+            let db = self.env_controller.start(&env, None).await;
+            if let Err(e) = self.run_env(&env, &db).await {
+                println!("Environment {} run failed with error {:?}", env, e);
+            }
+            self.env_controller.stop(&env, db).await;
         }
 
         Ok(())
@@ -87,10 +92,8 @@ impl<E: Environment> Runner<E> {
         Ok(result)
     }
 
-    async fn run_env(&self, env: String) -> Result<()> {
-        // todo: read env config
-        let db = self.env.start(&env, None).await;
-        let case_paths = self.collect_case_paths(&env).await?;
+    async fn run_env(&self, env: &str, db: &E::DB) -> Result<()> {
+        let case_paths = self.collect_case_paths(env).await?;
         let mut diff_cases = vec![];
         let start = Instant::now();
         for path in case_paths {
@@ -100,7 +103,7 @@ impl<E: Environment> Runner<E> {
             let mut output_file = Self::open_output_file(&output_path).await?;
 
             let timer = Instant::now();
-            case.execute(&db, &mut output_file).await?;
+            case.execute(db, &mut output_file).await?;
             let elapsed = timer.elapsed();
 
             output_file.flush().await?;
