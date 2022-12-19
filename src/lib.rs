@@ -1,3 +1,5 @@
+// Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
+
 //! **SQL** integration test har**NESS**
 //!
 //! ## Usage
@@ -13,7 +15,7 @@
 //!
 //! And then all you need is to run the runner!
 //!
-//! ```rust, no_run
+//! ```rust, ignore, no_run
 //! async fn run_integration_test() {
 //!     let runner = Runner::new(root_path, env).await;
 //!     runner.run().await;
