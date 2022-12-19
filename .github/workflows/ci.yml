@@ -51,10 +51,8 @@ jobs:
       - name: Backup Lock File
         run: |
           cp ${LOCK_FILE} ${LOCK_FILE}.bak
-      - name: Install clippy rustfmt
+      - name: Install cargo-sort
         run: |
-          rustup component add clippy
-          rustup component add rustfmt
           cargo install cargo-sort
       - name: Run Style Check
         run: |
