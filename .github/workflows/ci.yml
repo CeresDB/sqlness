@@ -64,19 +64,8 @@ jobs:
           make check-cargo-toml
       - name: Run Unit Tests
         run: |
-          make test-ut
+          make test
           echo "Checking if ${LOCK_FILE} has changed..."
       - name: Check Lock File
         run: |
           diff ${LOCK_FILE} ${LOCK_FILE}.bak
-      - name: Run Sqlness
-        run: |
-          cd tests
-          make run
-        env:
-          RUST_BACKTRACE: "1"
-      - name: Report Disk Usage
-        if: always()
-        run: |
-          du -sh ./target
-          df -h

@@ -22,7 +22,7 @@ use crate::{config::Config, environment::Environment};
 /// [`new`]: crate::Runner#method.new
 /// [`run`]: crate::Runner#method.run
 ///
-/// ```rust, no_run
+/// ```rust, ignore, no_run
 /// async fn run_integration_test() {
 ///     let runner = Runner::new(root_path, env).await;
 ///     runner.run().await;
