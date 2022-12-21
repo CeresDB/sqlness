@@ -97,30 +97,24 @@ impl<E: Environment> Runner<E> {
     async fn run_env(&self, env: &str, db: &E::DB) -> Result<()> {
         let case_paths = self.collect_case_paths(env).await?;
         let mut diff_cases = vec![];
+        let mut errors = vec![];
         let start = Instant::now();
         for path in case_paths {
-            let case_path = path.with_extension(&self.config.test_case_extension);
-            let case = TestCase::from_file(case_path, &self.config).await?;
-            let output_path = path.with_extension(&self.config.output_result_extension);
-            let mut output_file = Self::open_output_file(&output_path).await?;
-
-            let timer = Instant::now();
-            case.execute(db, &mut output_file).await?;
-            let elapsed = timer.elapsed();
-
-            output_file.flush().await?;
-            let is_different = self.compare(&path).await?;
-            if !is_different {
-                remove_file(output_path).await?;
-            } else {
-                diff_cases.push(path.as_os_str().to_str().unwrap().to_owned());
+            let case_result = self.run_single_case(db, &path).await;
+            let case_name = path.as_os_str().to_str().unwrap().to_owned();
+            match case_result {
+                Ok(true) => diff_cases.push(case_name),
+                Ok(false) => {}
+                Err(e) => {
+                    if self.config.fail_fast {
+                        errors.push((case_name, e))
+                    } else {
+                        println!("Case {} failed with error {:?}", case_name, e);
+                        println!("Stopping environment {} due to previous error.", env);
+                        break;
+                    }
+                }
             }
-
-            println!(
-                "Test case {:?} finished, cost: {}ms",
-                path.as_os_str(),
-                elapsed.as_millis()
-            );
         }
 
         println!(
@@ -129,15 +123,46 @@ impl<E: Environment> Runner<E> {
             start.elapsed().as_millis()
         );
 
+        let mut error_count = 0;
         if !diff_cases.is_empty() {
             println!("Different cases:");
             println!("{:#?}", diff_cases);
-            Err(SqlnessError::RunFailed {
-                count: diff_cases.len(),
-            })
-        } else {
-            Ok(())
+            error_count += diff_cases.len();
         }
+        if !errors.is_empty() {
+            println!("Error cases:");
+            println!("{:#?}", errors);
+            error_count += errors.len();
+        }
+        if error_count == 0 {
+            Ok(())
+        } else {
+            Err(SqlnessError::RunFailed { count: error_count })
+        }
+    }
+
+    async fn run_single_case(&self, db: &E::DB, path: &PathBuf) -> Result<bool> {
+        let case_path = path.with_extension(&self.config.test_case_extension);
+        let case = TestCase::from_file(case_path, &self.config).await?;
+        let output_path = path.with_extension(&self.config.output_result_extension);
+        let mut output_file = Self::open_output_file(&output_path).await?;
+
+        let timer = Instant::now();
+        case.execute(db, &mut output_file).await?;
+        let elapsed = timer.elapsed();
+
+        output_file.flush().await?;
+        let is_different = self.compare(&path).await?;
+        if !is_different {
+            remove_file(output_path).await?;
+        }
+
+        println!(
+            "Test case {:?} finished, cost: {}ms",
+            path.as_os_str(),
+            elapsed.as_millis()
+        );
+        Ok(is_different)
     }
 
     async fn collect_case_paths(&self, env: &str) -> Result<Vec<PathBuf>> {

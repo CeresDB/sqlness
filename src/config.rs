@@ -24,4 +24,7 @@ pub struct Config {
     /// Default value: `config.toml`
     #[builder(default = "String::from(\"config.toml\")")]
     pub env_config_file: String,
+    /// Fail this run as soon as one case fails if true
+    #[builder(default = "true")]
+    pub fail_fast: bool,
 }
