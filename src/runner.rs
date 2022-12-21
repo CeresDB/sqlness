@@ -106,7 +106,7 @@ impl<E: Environment> Runner<E> {
                 Ok(true) => diff_cases.push(case_name),
                 Ok(false) => {}
                 Err(e) => {
-                    if self.config.no_fail_fast {
+                    if self.config.fail_fast {
                         errors.push((case_name, e))
                     } else {
                         println!("Case {} failed with error {:?}", case_name, e);
