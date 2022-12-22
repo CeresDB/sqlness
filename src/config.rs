@@ -27,4 +27,7 @@ pub struct Config {
     /// Fail this run as soon as one case fails if true
     #[builder(default = "true")]
     pub fail_fast: bool,
+    /// If specified, only run cases containing this string in their names.
+    #[builder(default = "String::new()")]
+    pub test_filter: String,
 }

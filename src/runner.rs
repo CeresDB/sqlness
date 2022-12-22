@@ -86,8 +86,8 @@ impl<E: Environment> Runner<E> {
 
         while let Some(dir) = dirs.next_entry().await? {
             if dir.file_type().await?.is_dir() {
-                let file_name = dir.file_name();
-                result.push(file_name.to_str().unwrap().to_owned());
+                let file_name = dir.file_name().to_str().unwrap().to_string();
+                result.push(file_name);
             }
         }
 
@@ -182,6 +182,13 @@ impl<E: Environment> Runner<E> {
                     })
             })
             .map(|path| path.with_extension(""))
+            .filter(|path| {
+                path.file_name()
+                    .unwrap_or_default()
+                    .to_str()
+                    .unwrap_or_default()
+                    .contains(&self.config.test_filter)
+            })
             .collect();
 
         // sort the cases in an os-independent order.
