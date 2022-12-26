@@ -237,8 +237,16 @@ impl<E: Environment> Runner<E> {
             .names("Expected", "Actual");
         let is_different = diff.diff().iter().any(|d| !matches!(d, DiffOp::Equal(_)));
         if is_different {
-            println!("Result unexpected, path:{:?}\n", path.as_ref());
-            diff.prettytable();
+            println!("Result unexpected, path:{:?}", path.as_ref());
+            println!(
+                "Hint: compare them with \"diff {} {}\"\n",
+                path.as_ref()
+                    .with_extension(&self.config.output_result_extension)
+                    .display(),
+                path.as_ref()
+                    .with_extension(&self.config.expect_result_extension)
+                    .display()
+            )
         }
 
         Ok(is_different)
