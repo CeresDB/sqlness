@@ -49,7 +49,7 @@ impl Config {
     }
 
     fn default_expect_result_extension() -> String {
-        "output".to_string()
+        "result".to_string()
     }
 
     fn default_interceptor_prefix() -> String {

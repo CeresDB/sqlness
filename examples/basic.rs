@@ -1,3 +1,5 @@
+// Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
+
 use std::{env, fmt::Display, process};
 
 use async_trait::async_trait;
