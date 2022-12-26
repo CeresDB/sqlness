@@ -10,24 +10,61 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub case_dir: String,
     /// Default value: `sql`
-    #[builder(default = "String::from(\"sql\")")]
+    #[builder(default = "Config::default_test_case_extension()")]
+    #[serde(default = "Config::default_test_case_extension")]
     pub test_case_extension: String,
     /// Default value: `output`
-    #[builder(default = "String::from(\"output\")")]
+    #[builder(default = "Config::default_output_result_extension()")]
+    #[serde(default = "Config::default_output_result_extension")]
     pub output_result_extension: String,
     /// Default value: `result`
-    #[builder(default = "String::from(\"result\")")]
+    #[builder(default = "Config::default_expect_result_extension()")]
+    #[serde(default = "Config::default_expect_result_extension")]
     pub expect_result_extension: String,
     /// Default value: `-- SQLNESS`
-    #[builder(default = "String::from(\"-- SQLNESS\")")]
+    #[builder(default = "Config::default_interceptor_prefix()")]
+    #[serde(default = "Config::default_interceptor_prefix")]
     pub interceptor_prefix: String,
     /// Default value: `config.toml`
-    #[builder(default = "String::from(\"config.toml\")")]
+    #[builder(default = "Config::default_env_config_file()")]
+    #[serde(default = "Config::default_env_config_file")]
     pub env_config_file: String,
     /// Fail this run as soon as one case fails if true
     #[builder(default = "true")]
+    #[serde(default = "Config::default_fail_fast")]
     pub fail_fast: bool,
     /// If specified, only run cases containing this string in their names.
-    #[builder(default = "String::new()")]
+    #[builder(default = "Config::default_test_filter()")]
+    #[serde(default = "Config::default_test_filter")]
     pub test_filter: String,
+}
+
+impl Config {
+    fn default_test_case_extension() -> String {
+        "sql".to_string()
+    }
+
+    fn default_output_result_extension() -> String {
+        "output".to_string()
+    }
+
+    fn default_expect_result_extension() -> String {
+        "output".to_string()
+    }
+
+    fn default_interceptor_prefix() -> String {
+        "-- SQLNESS".to_string()
+    }
+
+    fn default_env_config_file() -> String {
+        "config.toml".to_string()
+    }
+
+    fn default_fail_fast() -> bool {
+        true
+    }
+
+    fn default_test_filter() -> String {
+        "".to_string()
+    }
 }
