@@ -64,6 +64,9 @@ jobs:
         run: |
           make test
           echo "Checking if ${LOCK_FILE} has changed..."
+      - name: Run examples
+        run: |
+          make basic-example
       - name: Check Lock File
         run: |
           diff ${LOCK_FILE} ${LOCK_FILE}.bak

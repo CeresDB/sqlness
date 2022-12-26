@@ -11,8 +11,8 @@ struct MyDB;
 #[async_trait]
 impl Database for MyDB {
     async fn query(&self, query: String) -> Box<dyn Display> {
+        // Implement query logic here
         println!("Exec {}...", query);
-
         return Box::new("ok".to_string());
     }
 }
@@ -22,8 +22,8 @@ impl MyDB {
         MyDB
     }
 
-    fn stop(self: Self) {
-        println!("BasicDB stopped...");
+    fn stop(self) {
+        println!("MyDB stopped...");
     }
 }
 
