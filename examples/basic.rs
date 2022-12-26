@@ -4,10 +4,10 @@ use async_trait::async_trait;
 use sqlness::{Database, Environment, Runner, SqlnessError};
 
 struct MyEnv;
-struct BasicDB;
+struct MyDB;
 
 #[async_trait]
-impl Database for BasicDB {
+impl Database for MyDB {
     async fn query(&self, query: String) -> Box<dyn Display> {
         println!("Exec {}...", query);
 
@@ -15,9 +15,9 @@ impl Database for BasicDB {
     }
 }
 
-impl BasicDB {
+impl MyDB {
     fn new(_env: &str, _config: Option<String>) -> Self {
-        BasicDB
+        MyDB
     }
 
     fn stop(self: Self) {
@@ -27,11 +27,11 @@ impl BasicDB {
 
 #[async_trait]
 impl Environment for MyEnv {
-    type DB = BasicDB;
+    type DB = MyDB;
 
     async fn start(&self, env: &str, config: Option<String>) -> Self::DB {
         println!("MyEnv start, env:{}, config:{:?}", env, config);
-        BasicDB::new(env, config)
+        MyDB::new(env, config)
     }
 
     async fn stop(&self, env: &str, database: Self::DB) {
@@ -54,7 +54,7 @@ async fn main() -> Result<(), SqlnessError> {
         .await
         .expect("Create Runner failed");
 
-    println!("get runner");
+    println!("Run testcase...");
 
     runner.run().await?;
 
