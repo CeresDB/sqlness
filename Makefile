@@ -24,3 +24,6 @@ check-license:
 
 clippy:
 	cd $(DIR); cargo clippy --all-targets --all-features --workspace -- -D warnings
+
+basic-example:
+	cd $(DIR); cargo run --example basic -- examples/basic.toml

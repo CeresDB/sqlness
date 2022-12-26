@@ -107,11 +107,11 @@ impl<E: Environment> Runner<E> {
                 Ok(false) => {}
                 Err(e) => {
                     if self.config.fail_fast {
-                        errors.push((case_name, e))
-                    } else {
                         println!("Case {} failed with error {:?}", case_name, e);
                         println!("Stopping environment {} due to previous error.", env);
                         break;
+                    } else {
+                        errors.push((case_name, e))
                     }
                 }
             }
