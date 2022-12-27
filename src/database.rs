@@ -6,11 +6,11 @@ use async_trait::async_trait;
 
 /// Query executor.
 ///
-/// [`Runner`] will call [`Environment::start`] to create database to
+/// [`Runner`] will call [`EnvController::start`] to create database to
 /// execute query.
 ///
 /// [`Runner`]: crate::Runner
-/// [`Environment::start`]: crate::Environment#tymethod.start
+/// [`EnvController::start`]: crate::EnvController#tymethod.start
 #[async_trait]
 pub trait Database {
     async fn query(&self, query: String) -> Box<dyn Display>;

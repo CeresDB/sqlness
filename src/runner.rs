@@ -13,7 +13,7 @@ use walkdir::WalkDir;
 
 use crate::case::TestCase;
 use crate::error::{Result, SqlnessError};
-use crate::{config::Config, environment::Environment};
+use crate::{config::Config, environment::EnvController};
 
 /// The entrypoint of this crate.
 ///
@@ -30,12 +30,12 @@ use crate::{config::Config, environment::Environment};
 /// ```
 ///
 /// For more detailed explaination, refer to crate level documentment.
-pub struct Runner<E: Environment> {
+pub struct Runner<E: EnvController> {
     config: Config,
     env_controller: Arc<E>,
 }
 
-impl<E: Environment> Runner<E> {
+impl<E: EnvController> Runner<E> {
     pub async fn new<P: AsRef<Path>>(config_path: P, env: E) -> Result<Self> {
         let mut config_file =
             File::open(config_path.as_ref())
