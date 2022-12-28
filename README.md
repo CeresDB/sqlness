@@ -17,6 +17,7 @@ $ tree examples/
 examples/
 ├── basic-case               # Testcase root directory
 │   └── simple               # One environment
+│       ├── config.toml      # Config file for current environment
 │       ├── select.result    # Expected result file
 │       └── select.sql       # Input SQL testcase
 ├── basic.rs                 # Entrypoint of this example
@@ -42,7 +43,7 @@ When there is any diffs, the runner will keep `*.output` for later investigation
 Below is the output of this example:
 ```bash
 Run testcase...
-Start, env:simple, config:None.
+Start, env:simple, config:Some("examples/basic-case/simple/config.toml").
 Test case "examples/basic-case/simple/select" finished, cost: 0ms
 Environment simple run finished, cost:1ms
 Stop, env:simple.
