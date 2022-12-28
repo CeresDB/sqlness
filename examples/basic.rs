@@ -3,7 +3,7 @@
 use std::{env, fmt::Display, process};
 
 use async_trait::async_trait;
-use sqlness::{Database, Environment, Runner, SqlnessError};
+use sqlness::{Database, EnvController, Runner, SqlnessError};
 
 struct MyEnv;
 struct MyDB;
@@ -28,7 +28,7 @@ impl MyDB {
 }
 
 #[async_trait]
-impl Environment for MyEnv {
+impl EnvController for MyEnv {
     type DB = MyDB;
 
     async fn start(&self, env: &str, config: Option<String>) -> Self::DB {

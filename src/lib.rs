@@ -8,7 +8,7 @@
 //! compare the result. There are three things you need to do to complete an
 //! integration test:
 //! - Prepare the test case (of course!)
-//! - Implement [`Environment`] and [`Database`]. They provide methods to start
+//! - Implement [`EnvController`] and [`Database`]. They provide methods to start
 //!   the server, submit the query and clean up etc.
 //! - Format the result. Implement [`Display`] for your query result to make them
 //!   comparable.
@@ -44,7 +44,7 @@
 //! ```
 //!
 //! Here the root dir is `sqlness`, it contains two sub-directories for different
-//! [`Environment`]s `local` and `remote`. Each environment has an env-specific
+//! "environments": `local` and `remote`. Each environment has an env-specific
 //! configuration `config.toml`. All the test cases are placed under corresponding
 //! environment directory.
 //!
@@ -62,6 +62,6 @@ mod runner;
 
 pub use config::{Config, ConfigBuilder};
 pub use database::Database;
-pub use environment::Environment;
+pub use environment::EnvController;
 pub use error::SqlnessError;
 pub use runner::Runner;

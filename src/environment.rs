@@ -4,10 +4,10 @@ use async_trait::async_trait;
 
 use crate::database::Database;
 
-/// Test environment definition.
+/// Controller of test environments.
 ///
 /// Different environments usually stands for different start or deploy manner,
-/// like standalone versus cluster etc. [`Environment`] is sort of [`Database`]
+/// like standalone versus cluster etc. [`EnvController`] is sort of [`Database`]
 /// "factory" - it create different [`Database`]s with different environment
 /// mode parameter.
 ///
@@ -16,7 +16,7 @@ use crate::database::Database;
 /// directory name. Refer to crate level documentation for more information
 /// about directory organizaiton rules.
 #[async_trait]
-pub trait Environment {
+pub trait EnvController {
     type DB: Database;
 
     /// Start a [`Database`] to run test queries.
