@@ -36,7 +36,7 @@ pub struct Runner<E: EnvController> {
 }
 
 impl<E: EnvController> Runner<E> {
-    pub async fn new<P: AsRef<Path>>(config_path: P, env: E) -> Result<Self> {
+    pub async fn try_new<P: AsRef<Path>>(config_path: P, env: E) -> Result<Self> {
         let mut config_file =
             File::open(config_path.as_ref())
                 .await
