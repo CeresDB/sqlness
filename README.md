@@ -10,7 +10,7 @@ An ergonomic, opinionated framework for SQL integration test.
 
 # Example
 
-See [basic.rs](examples/basic.rs) to learn how to setup a basic test. There is the directory structure of examples
+See [basic.rs](examples/basic.rs) to learn how to setup a basic test. This is the directory structure of examples
 
 ```
 $ tree examples/
@@ -49,3 +49,14 @@ Environment simple run finished, cost:1ms
 Stop, env:simple.
 MyDB stopped.
 ```
+
+# Who is using
+
+- [CeresDB](https://github.com/CeresDB/ceresdb), a high-performance, distributed, cloud native time-series database that can handle both time-series and analytics workloads.
+- [GreptimeDB](https://github.com/GreptimeTeam/greptimedb/), an open-source, cloud-native, distributed time-series database.
+
+If you’re using sqlness and like to be added to this list, welcome to [open a PR](https://github.com/CeresDB/sqlness/pulls).
+
+# Licensing
+
+This project is under [Apache License 2.0](./LICENSE).
