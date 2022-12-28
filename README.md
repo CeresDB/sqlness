@@ -57,6 +57,6 @@ MyDB stopped.
 
 If you’re using sqlness and like to be added to this list, welcome to [open a PR](https://github.com/CeresDB/sqlness/pulls).
 
-# Licensing
+# License
 
 This project is under [Apache License 2.0](./LICENSE).
