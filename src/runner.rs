@@ -70,7 +70,13 @@ impl<E: EnvController> Runner<E> {
         let environments = self.collect_env().await?;
         for env in environments {
             let env_config = self.read_env_config(&env).await;
-            let db = self.env_controller.start(&env, env_config).await;
+            let config_path = env_config.as_path();
+            let config_path = if config_path.exists() {
+                Some(config_path)
+            } else {
+                None
+            };
+            let db = self.env_controller.start(&env, config_path).await;
             if let Err(e) = self.run_env(&env, &db).await {
                 println!("Environment {} run failed with error {:?}", env, e);
             }
@@ -80,24 +86,13 @@ impl<E: EnvController> Runner<E> {
         Ok(())
     }
 
-    async fn read_env_config(&self, env: &str) -> Option<String> {
+    async fn read_env_config(&self, env: &str) -> PathBuf {
         let mut path_buf = std::path::PathBuf::new();
         path_buf.push(&self.config.case_dir);
         path_buf.push(env);
         path_buf.push(&self.config.env_config_file);
 
-        let mut file = match File::open(path_buf).await {
-            Ok(f) => f,
-            Err(_e) => return None,
-        };
-
-        let mut body = String::new();
-        if let Err(e) = file.read_to_string(&mut body).await {
-            eprintln!("Read config failed, err:{}", e);
-            return None;
-        };
-
-        Some(body)
+        path_buf
     }
 
     async fn collect_env(&self) -> Result<Vec<String>> {

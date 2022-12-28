@@ -1,5 +1,7 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
+use std::path::Path;
+
 use async_trait::async_trait;
 
 use crate::database::Database;
@@ -25,7 +27,7 @@ pub trait EnvController {
     /// And the config file's path to this environment if it's find, it's defined
     /// by the `env_config_file` field in the root config toml, and the default
     /// value is `config.toml`.
-    async fn start(&self, env: &str, config: Option<String>) -> Self::DB;
+    async fn start(&self, env: &str, config: Option<&Path>) -> Self::DB;
 
     /// Stop one [`Database`].
     async fn stop(&self, env: &str, database: Self::DB);

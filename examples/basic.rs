@@ -1,6 +1,6 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
-use std::{env, fmt::Display, process};
+use std::{env, fmt::Display, path::Path, process};
 
 use async_trait::async_trait;
 use sqlness::{Database, EnvController, Runner};
@@ -18,7 +18,7 @@ impl Database for MyDB {
 }
 
 impl MyDB {
-    fn new(_env: &str, _config: Option<String>) -> Self {
+    fn new(_env: &str, _config: Option<&Path>) -> Self {
         MyDB
     }
 
@@ -31,7 +31,7 @@ impl MyDB {
 impl EnvController for MyController {
     type DB = MyDB;
 
-    async fn start(&self, env: &str, config: Option<String>) -> Self::DB {
+    async fn start(&self, env: &str, config: Option<&Path>) -> Self::DB {
         println!("Start, env:{}, config:{:?}.", env, config);
         MyDB::new(env, config)
     }

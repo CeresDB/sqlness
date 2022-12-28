@@ -43,7 +43,7 @@ When there is any diffs, the runner will keep `*.output` for later investigation
 Below is the output of this example:
 ```bash
 Run testcase...
-Start, env:simple, config:Some("description = \"This is config for running basic test\"").
+Start, env:simple, config:Some("examples/basic-case/simple/config.toml").
 Test case "examples/basic-case/simple/select" finished, cost: 0ms
 Environment simple run finished, cost:1ms
 Stop, env:simple.
