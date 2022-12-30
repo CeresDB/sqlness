@@ -74,7 +74,13 @@ jobs:
             exit 1
           else
             echo "Expected, this example should fail"
-            exit 0
+          fi
+
+          if [ -f "/tmp/sqlness-bad-example.lock" ]; then
+            echo "Lock file should be deleted after run."
+            exit 1
+          else
+            echo "Expected, lock file is deleted."
           fi
       - name: Check Lock File
         run: |
