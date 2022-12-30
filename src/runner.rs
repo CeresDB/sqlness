@@ -67,6 +67,7 @@ impl<E: EnvController> Runner<E> {
 
     pub async fn run(&self) -> Result<()> {
         let environments = self.collect_env().await?;
+        let mut errors = Vec::new();
         for env in environments {
             let env_config = self.read_env_config(&env).await;
             let config_path = env_config.as_path();
@@ -76,13 +77,23 @@ impl<E: EnvController> Runner<E> {
                 None
             };
             let db = self.env_controller.start(&env, config_path).await;
-            if let Err(e) = self.run_env(&env, &db).await {
-                println!("Environment {} run failed, error:{:?}.", env, e);
-                self.env_controller.stop(&env, db).await;
-                return Err(e);
-            }
-
+            let run_result = self.run_env(&env, &db).await;
             self.env_controller.stop(&env, db).await;
+
+            if let Err(e) = run_result {
+                println!("Environment {} run failed, error:{:?}.", env, e);
+
+                if self.config.fail_fast {
+                    return Err(e);
+                }
+
+                errors.push(e);
+            }
+        }
+
+        // only return first error
+        if let Some(e) = errors.pop() {
+            return Err(e);
         }
 
         Ok(())
