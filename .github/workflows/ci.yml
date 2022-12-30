@@ -64,9 +64,18 @@ jobs:
         run: |
           make test
           echo "Checking if ${LOCK_FILE} has changed..."
-      - name: Run examples
+      - name: Run basic example
         run: |
           make basic-example
+      - name: Run bad example
+        run: |
+          if make bad-example; then
+            echo "Cannot reach here, this example should fail"
+            exit 1;
+          else
+            echo "Expected, this example should fail"
+            exit 0;
+          if
       - name: Check Lock File
         run: |
           diff ${LOCK_FILE} ${LOCK_FILE}.bak

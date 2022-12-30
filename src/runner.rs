@@ -78,8 +78,11 @@ impl<E: EnvController> Runner<E> {
             };
             let db = self.env_controller.start(&env, config_path).await;
             if let Err(e) = self.run_env(&env, &db).await {
-                println!("Environment {} run failed with error {:?}", env, e);
+                println!("Environment {} run failed, error:{:?}.", env, e);
+                self.env_controller.stop(&env, db).await;
+                return Err(e);
             }
+
             self.env_controller.stop(&env, db).await;
         }
 

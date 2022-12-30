@@ -26,4 +26,7 @@ clippy:
 	cd $(DIR); cargo clippy --all-targets --all-features --workspace -- -D warnings
 
 basic-example:
-	cd $(DIR); cargo run --example basic -- examples/basic.toml
+	cd $(DIR); cargo run --example basic
+
+bad-example:
+	cd $(DIR); cargo run --example bad
