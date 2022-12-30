@@ -1,1 +1,5 @@
 /target
+# Ignore this output file, since the bad example will always fail.
+# For normal case, output file should not be ignored, and it acts as
+# a signal that our testcase need to be fixed.
+examples/bad-case/simple/select.output

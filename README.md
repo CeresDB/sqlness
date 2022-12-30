@@ -23,13 +23,12 @@ examples/
 │       ├── select.result    # Expected result file
 │       └── select.sql       # Input SQL testcase
 ├── basic.rs                 # Entrypoint of this example
-└── basic.toml               # Config of this example
 
 ```
 
 When run it via
 ```bash
-cargo run --example basic -- examples/basic.toml
+cargo run --example basic
 ```
 It will do following things:
 1. Collect all environments(first-level directory) under `basic-case`.
