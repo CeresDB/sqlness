@@ -71,11 +71,11 @@ jobs:
         run: |
           if make bad-example; then
             echo "Cannot reach here, this example should fail"
-            exit 1;
+            exit 1
           else
             echo "Expected, this example should fail"
-            exit 0;
-          if
+            exit 0
+          fi
       - name: Check Lock File
         run: |
           diff ${LOCK_FILE} ${LOCK_FILE}.bak

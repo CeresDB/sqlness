@@ -2,7 +2,6 @@
 
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use std::sync::Arc;
 
 use prettydiff::basic::DiffOp;
 use prettydiff::diff_lines;
@@ -32,11 +31,11 @@ use crate::{config::Config, environment::EnvController};
 /// For more detailed explaination, refer to crate level documentment.
 pub struct Runner<E: EnvController> {
     config: Config,
-    env_controller: Arc<E>,
+    env_controller: E,
 }
 
 impl<E: EnvController> Runner<E> {
-    pub async fn try_new<P: AsRef<Path>>(config_path: P, env: E) -> Result<Self> {
+    pub async fn try_new<P: AsRef<Path>>(config_path: P, env_controller: E) -> Result<Self> {
         let mut config_file =
             File::open(config_path.as_ref())
                 .await
@@ -55,14 +54,14 @@ impl<E: EnvController> Runner<E> {
 
         Ok(Self {
             config,
-            env_controller: Arc::new(env),
+            env_controller,
         })
     }
 
-    pub async fn new_with_config(config: Config, env: E) -> Result<Self> {
+    pub async fn new_with_config(config: Config, env_controller: E) -> Result<Self> {
         Ok(Self {
             config,
-            env_controller: Arc::new(env),
+            env_controller,
         })
     }
 
