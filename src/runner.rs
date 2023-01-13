@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use prettydiff::basic::DiffOp;
+use prettydiff::basic::{DiffOp, SliceChangeset};
 use prettydiff::diff_lines;
 use tokio::fs::{read_dir, remove_file, File, OpenOptions};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -260,21 +260,15 @@ impl<E: EnvController> Runner<E> {
         .await?;
         let output_lines = String::from_utf8(output_lines)?;
 
-        let diff = diff_lines(&result_lines, &output_lines)
-            .set_diff_only(true)
-            .names("Expected", "Actual");
-        let is_different = diff.diff().iter().any(|d| !matches!(d, DiffOp::Equal(_)));
+        let diff = diff_lines(&result_lines, &output_lines);
+        let diff = diff.diff();
+        let is_different = diff.iter().any(|d| !matches!(d, DiffOp::Equal(_)));
         if is_different {
-            println!("Result unexpected, path:{:?}", path.as_ref());
             println!(
-                "Hint: compare them with \"diff {} {}\"\n",
-                path.as_ref()
-                    .with_extension(&self.config.output_result_extension)
-                    .display(),
-                path.as_ref()
-                    .with_extension(&self.config.expect_result_extension)
-                    .display()
-            )
+                "Result unexpected, path:{}",
+                path.as_ref().to_string_lossy()
+            );
+            println!("{}", SliceChangeset { diff });
         }
 
         Ok(is_different)
