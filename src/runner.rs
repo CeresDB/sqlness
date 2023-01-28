@@ -81,7 +81,7 @@ impl<E: EnvController> Runner<E> {
             self.env_controller.stop(&env, db).await;
 
             if let Err(e) = run_result {
-                println!("Environment {} run failed, error:{:?}.", env, e);
+                println!("Environment {env} run failed, error:{e:?}.");
 
                 if self.config.fail_fast {
                     return Err(e);
@@ -135,8 +135,8 @@ impl<E: EnvController> Runner<E> {
                 Ok(false) => {}
                 Err(e) => {
                     if self.config.fail_fast {
-                        println!("Case {} failed with error {:?}", case_name, e);
-                        println!("Stopping environment {} due to previous error.", env);
+                        println!("Case {case_name} failed with error {e:?}");
+                        println!("Stopping environment {env} due to previous error.");
                         break;
                     } else {
                         errors.push((case_name, e))
@@ -154,12 +154,12 @@ impl<E: EnvController> Runner<E> {
         let mut error_count = 0;
         if !diff_cases.is_empty() {
             println!("Different cases:");
-            println!("{:#?}", diff_cases);
+            println!("{diff_cases:#?}");
             error_count += diff_cases.len();
         }
         if !errors.is_empty() {
             println!("Error cases:");
-            println!("{:#?}", errors);
+            println!("{errors:#?}");
             error_count += errors.len();
         }
         if error_count == 0 {

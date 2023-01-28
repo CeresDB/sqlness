@@ -32,12 +32,12 @@ impl EnvController for MyController {
     type DB = MyDB;
 
     async fn start(&self, env: &str, config: Option<&Path>) -> Self::DB {
-        println!("Start, env:{}, config:{:?}.", env, config);
+        println!("Start, env:{env}, config:{config:?}.");
         MyDB::new(env, config)
     }
 
     async fn stop(&self, env: &str, database: Self::DB) {
-        println!("Stop, env:{}.", env,);
+        println!("Stop, env:{env}.",);
         database.stop();
     }
 }
