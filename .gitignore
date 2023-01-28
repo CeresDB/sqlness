@@ -3,3 +3,5 @@
 # For normal case, output file should not be ignored, and it acts as
 # a signal that our testcase need to be fixed.
 examples/bad-case/simple/select.output
+# Ignoring cargo.lock file
+Cargo.lock
