@@ -20,7 +20,6 @@ env:
   RUSTFLAGS: "-C debuginfo=1"
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: "1"
-  LOCK_FILE: Cargo.lock
 
 jobs:
   linux-ci:
@@ -43,7 +42,7 @@ jobs:
           path: |
             ~/.cargo
             ./target
-          key: debug-${{ runner.os }}-${{ hashFiles('rust-toolchain') }}-${{ hashFiles('Cargo.lock') }}
+          key: debug-${{ runner.os }}-${{ hashFiles('rust-toolchain') }}-${{ hashFiles('Cargo.toml') }}
           restore-keys: |
             debug-${{ runner.os }}-${{ hashFiles('rust-toolchain') }}-
             debug-${{ runner.os }}-
@@ -60,7 +59,6 @@ jobs:
       - name: Run Unit Tests
         run: |
           make test
-          echo "Checking if ${LOCK_FILE} has changed..."
       - name: Run basic example
         run: |
           make basic-example
