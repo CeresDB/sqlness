@@ -1,5 +1,7 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
+#![allow(clippy::print_stdout)]
+
 use std::{fmt::Display, path::Path};
 
 use async_trait::async_trait;
@@ -10,7 +12,7 @@ struct MyDB;
 
 #[async_trait]
 impl Database for MyDB {
-    async fn query(&self, _query: String) -> Box<dyn Display> {
+    async fn query(&mut self, _query: String) -> Box<dyn Display> {
         // Implement query logic here
         // println!("Exec {}...", query);
         return Box::new("ok".to_string());

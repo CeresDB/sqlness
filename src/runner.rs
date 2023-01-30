@@ -76,8 +76,8 @@ impl<E: EnvController> Runner<E> {
             } else {
                 None
             };
-            let db = self.env_controller.start(&env, config_path).await;
-            let run_result = self.run_env(&env, &db).await;
+            let mut db = self.env_controller.start(&env, config_path).await;
+            let run_result = self.run_env(&env, &mut db).await;
             self.env_controller.stop(&env, db).await;
 
             if let Err(e) = run_result {
@@ -122,7 +122,7 @@ impl<E: EnvController> Runner<E> {
         Ok(result)
     }
 
-    async fn run_env(&self, env: &str, db: &E::DB) -> Result<()> {
+    async fn run_env(&self, env: &str, db: &mut E::DB) -> Result<()> {
         let case_paths = self.collect_case_paths(env).await?;
         let mut diff_cases = vec![];
         let mut errors = vec![];
@@ -169,7 +169,7 @@ impl<E: EnvController> Runner<E> {
         }
     }
 
-    async fn run_single_case(&self, db: &E::DB, path: &PathBuf) -> Result<bool> {
+    async fn run_single_case(&self, db: &mut E::DB, path: &PathBuf) -> Result<bool> {
         let case_path = path.with_extension(&self.config.test_case_extension);
         let case = TestCase::from_file(case_path, &self.config).await?;
         let output_path = path.with_extension(&self.config.output_result_extension);

@@ -53,6 +53,8 @@
 //! both `sqlness/local/dml/basic.sql` and `sqlness/local/dml/another-dir/basic.sql`
 //! will be run under the `local` in the same pass.
 
+#![allow(clippy::print_stdout)]
+
 mod case;
 mod config;
 mod database;

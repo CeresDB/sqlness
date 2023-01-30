@@ -13,5 +13,5 @@ use async_trait::async_trait;
 /// [`EnvController::start`]: crate::EnvController#tymethod.start
 #[async_trait]
 pub trait Database {
-    async fn query(&self, query: String) -> Box<dyn Display>;
+    async fn query(&mut self, query: String) -> Box<dyn Display>;
 }

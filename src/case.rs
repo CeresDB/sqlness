@@ -58,7 +58,7 @@ impl TestCase {
         })
     }
 
-    pub(crate) async fn execute<W>(&self, db: &dyn Database, writer: &mut W) -> Result<()>
+    pub(crate) async fn execute<W>(&self, db: &mut dyn Database, writer: &mut W) -> Result<()>
     where
         W: AsyncWrite + Unpin,
     {
@@ -91,7 +91,7 @@ impl Query {
         self.query_lines.push(line.to_string());
     }
 
-    async fn execute<W>(&self, db: &dyn Database, writer: &mut W) -> Result<()>
+    async fn execute<W>(&self, db: &mut dyn Database, writer: &mut W) -> Result<()>
     where
         W: AsyncWrite + Unpin,
     {

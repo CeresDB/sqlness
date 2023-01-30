@@ -5,6 +5,8 @@
 //! When there is any diff between ${testcase}.output and ${testcase}.result,
 //! Users must resolve the diff, and keep the result file up to date.
 
+#![allow(clippy::print_stdout)]
+
 use std::{fmt::Display, fs::File, path::Path};
 
 use async_trait::async_trait;
@@ -15,7 +17,7 @@ struct MyDB;
 
 #[async_trait]
 impl Database for MyDB {
-    async fn query(&self, _query: String) -> Box<dyn Display> {
+    async fn query(&mut self, _query: String) -> Box<dyn Display> {
         return Box::new("Unexpected".to_string());
     }
 }
