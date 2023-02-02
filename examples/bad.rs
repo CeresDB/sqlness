@@ -2,7 +2,7 @@
 
 //! A demo designed to run failed.
 //!
-//! When there is any diff between ${testcase}.output and ${testcase}.result,
+//! When there is any diff between old and new result,
 //! Users must resolve the diff, and keep the result file up to date.
 
 use std::{fmt::Display, fs::File, path::Path};

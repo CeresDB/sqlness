@@ -13,14 +13,10 @@ pub struct Config {
     #[builder(default = "Config::default_test_case_extension()")]
     #[serde(default = "Config::default_test_case_extension")]
     pub test_case_extension: String,
-    /// Default value: `output`
-    #[builder(default = "Config::default_output_result_extension()")]
-    #[serde(default = "Config::default_output_result_extension")]
-    pub output_result_extension: String,
     /// Default value: `result`
-    #[builder(default = "Config::default_expect_result_extension()")]
-    #[serde(default = "Config::default_expect_result_extension")]
-    pub expect_result_extension: String,
+    #[builder(default = "Config::default_result_extension()")]
+    #[serde(default = "Config::default_result_extension")]
+    pub result_extension: String,
     /// Default value: `-- SQLNESS`
     #[builder(default = "Config::default_interceptor_prefix()")]
     #[serde(default = "Config::default_interceptor_prefix")]
@@ -44,11 +40,7 @@ impl Config {
         "sql".to_string()
     }
 
-    fn default_output_result_extension() -> String {
-        "output".to_string()
-    }
-
-    fn default_expect_result_extension() -> String {
+    fn default_result_extension() -> String {
         "result".to_string()
     }
 

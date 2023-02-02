@@ -46,7 +46,6 @@ jobs:
           restore-keys: |
             debug-${{ runner.os }}-${{ hashFiles('rust-toolchain') }}-
             debug-${{ runner.os }}-
-            debug-${{ runner.os }}
       - name: Install cargo-sort
         run: |
           cargo install cargo-sort
