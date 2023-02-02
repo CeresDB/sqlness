@@ -32,13 +32,13 @@ cargo run --example basic
 ```
 It will do following things:
 1. Collect all environments(first-level directory) under `basic-case`.
-2. Run tests(`.sql` files) under environment one after one and write query response to corresponding `{testcase}.result`.
+2. Run tests(`.sql` files) under environment one after one.
    1. Before execution it will read `{testcase}.result`(create one if not exists) to `Vec` as compare base.
    2. During execution it will collect query response and write to `{testcase}.result`
-   3. After execution it will diff content of `Vec` with `{testcase}.result`, PASS when they are the same otherwise FAIL.
+   3. After execution it will diff content of `Vec` with `{testcase}.result`, **PASS** when they are the same otherwise **FAIL**.
 3. Report result.
 
-Our target is to keep `*.result` file up to date, and this file should be tracked in Git.
+Target is to keep `*.result` file up to date, and this file should be tracked in Git.
 
 Below is the output of this example:
 ```bash
