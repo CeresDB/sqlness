@@ -220,6 +220,7 @@ impl<E: EnvController> Runner<E> {
 
         let test_case_extension = self.config.test_case_extension.as_str();
         let mut cases: Vec<_> = WalkDir::new(&root)
+            .follow_links(self.config.follow_links)
             .into_iter()
             .filter_map(|entry| {
                 entry

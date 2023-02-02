@@ -33,6 +33,11 @@ pub struct Config {
     #[builder(default = "Config::default_test_filter()")]
     #[serde(default = "Config::default_test_filter")]
     pub test_filter: String,
+    /// Whether follow symbolic links when searching test case files.
+    /// Defaults to "false" (not follow symbolic links).
+    #[builder(default = "false")]
+    #[serde(default = "Config::default_follow_links")]
+    pub follow_links: bool,
 }
 
 impl Config {
@@ -58,5 +63,9 @@ impl Config {
 
     fn default_test_filter() -> String {
         "".to_string()
+    }
+
+    fn default_follow_links() -> bool {
+        false
     }
 }
