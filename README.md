@@ -20,7 +20,7 @@ examples/
 ├── basic-case               # Testcase root directory
 │   └── simple               # One environment
 │       ├── config.toml      # Config file for current environment
-│       ├── select.result    # Expected result file
+│       ├── select.result    # Output result file
 │       └── select.sql       # Input SQL testcase
 ├── basic.rs                 # Entrypoint of this example
 
@@ -38,7 +38,9 @@ It will do following things:
    3. After execution it will diff content of `Vec` with `{testcase}.result`, **PASS** when they are the same otherwise **FAIL**.
 3. Report result.
 
-Target is to keep `*.result` file up to date, and this file should be tracked in Git.
+Usually `result` files should be tracked in git, whenever there are failed tests, users should
+1. Update `result` to latest version(e.g. `git add`) if result is right, or
+2. Restore `result` back to original version(e.g. `git checkout`), troubleshoot bugs in database implementation, and run tests again
 
 Below is the output of this example:
 ```bash

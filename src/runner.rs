@@ -170,7 +170,7 @@ impl<E: EnvController> Runner<E> {
         }
     }
 
-    async fn run_single_case(&self, db: &E::DB, path: &PathBuf) -> Result<bool> {
+    async fn run_single_case(&self, db: &E::DB, path: &Path) -> Result<bool> {
         let case_path = path.with_extension(&self.config.test_case_extension);
         let case = TestCase::from_file(&case_path, &self.config).await?;
         let result_path = path.with_extension(&self.config.result_extension);
