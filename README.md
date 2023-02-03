@@ -35,7 +35,7 @@ It will do following things:
 2. Run tests(`.sql` files) under environment one after one.
    1. Before execution it will read `{testcase}.result`(create one if not exists) to memory for compare.
    2. During execution it will collect query response and write to `{testcase}.result`
-   3. After execution it will diff content of `Vec` with `{testcase}.result`, **PASS** when they are the same otherwise **FAIL**.
+   3. After execution it will compare the generated `{testcase}.result` with previous one, **PASS** when they are the same, and **FAIL** otherwise.
 3. Report result.
 
 Usually `result` files should be tracked in git, whenever there are failed tests, users should
