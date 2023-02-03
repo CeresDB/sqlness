@@ -125,15 +125,15 @@ impl<E: EnvController> Runner<E> {
 
     async fn run_env(&self, env: &str, db: &E::DB) -> Result<()> {
         let case_paths = self.collect_case_paths(env).await?;
-        let mut diff_cases = vec![];
+        let mut failed_cases = vec![];
         let mut errors = vec![];
         let start = Instant::now();
         for path in case_paths {
-            let case_result = self.run_single_case(db, &path).await;
+            let is_success = self.run_single_case(db, &path).await;
             let case_name = path.as_os_str().to_str().unwrap().to_owned();
-            match case_result {
-                Ok(true) => diff_cases.push(case_name),
-                Ok(false) => {}
+            match is_success {
+                Ok(false) => failed_cases.push(case_name),
+                Ok(true) => {}
                 Err(e) => {
                     if self.config.fail_fast {
                         println!("Case {case_name} failed with error {e:?}");
@@ -152,17 +152,17 @@ impl<E: EnvController> Runner<E> {
             start.elapsed().as_millis()
         );
 
-        let mut error_count = 0;
-        if !diff_cases.is_empty() {
-            println!("Different cases:");
-            println!("{diff_cases:#?}");
-            error_count += diff_cases.len();
+        if !failed_cases.is_empty() {
+            println!("Failed cases:");
+            println!("{failed_cases:#?}");
         }
+
         if !errors.is_empty() {
             println!("Error cases:");
             println!("{errors:#?}");
-            error_count += errors.len();
         }
+
+        let error_count = failed_cases.len() + errors.len();
         if error_count == 0 {
             Ok(())
         } else {
@@ -170,6 +170,7 @@ impl<E: EnvController> Runner<E> {
         }
     }
 
+    /// Return true when this case pass, otherwise false.
     async fn run_single_case(&self, db: &E::DB, path: &Path) -> Result<bool> {
         let case_path = path.with_extension(&self.config.test_case_extension);
         let case = TestCase::from_file(&case_path, &self.config).await?;
@@ -204,7 +205,7 @@ impl<E: EnvController> Runner<E> {
         if let Some(diff) = self.compare(&old_result, &new_result) {
             println!("Result unexpected, path:{case_path:?}");
             println!("{diff}");
-            return Ok(true);
+            return Ok(false);
         }
 
         println!(
@@ -212,7 +213,8 @@ impl<E: EnvController> Runner<E> {
             path.as_os_str(),
             elapsed.as_millis()
         );
-        Ok(false)
+
+        Ok(true)
     }
 
     async fn collect_case_paths(&self, env: &str) -> Result<Vec<PathBuf>> {
