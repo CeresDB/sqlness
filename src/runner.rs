@@ -1,12 +1,13 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
+use std::io::{Cursor, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use prettydiff::basic::{DiffOp, SliceChangeset};
 use prettydiff::diff_lines;
-use tokio::fs::{read_dir, remove_file, File, OpenOptions};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::fs::{read_dir, File, OpenOptions};
+use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt};
 use tokio::time::Instant;
 use walkdir::WalkDir;
 
@@ -124,15 +125,15 @@ impl<E: EnvController> Runner<E> {
 
     async fn run_env(&self, env: &str, db: &E::DB) -> Result<()> {
         let case_paths = self.collect_case_paths(env).await?;
-        let mut diff_cases = vec![];
+        let mut failed_cases = vec![];
         let mut errors = vec![];
         let start = Instant::now();
         for path in case_paths {
-            let case_result = self.run_single_case(db, &path).await;
+            let is_success = self.run_single_case(db, &path).await;
             let case_name = path.as_os_str().to_str().unwrap().to_owned();
-            match case_result {
-                Ok(true) => diff_cases.push(case_name),
-                Ok(false) => {}
+            match is_success {
+                Ok(false) => failed_cases.push(case_name),
+                Ok(true) => {}
                 Err(e) => {
                     if self.config.fail_fast {
                         println!("Case {case_name} failed with error {e:?}");
@@ -151,17 +152,17 @@ impl<E: EnvController> Runner<E> {
             start.elapsed().as_millis()
         );
 
-        let mut error_count = 0;
-        if !diff_cases.is_empty() {
-            println!("Different cases:");
-            println!("{diff_cases:#?}");
-            error_count += diff_cases.len();
+        if !failed_cases.is_empty() {
+            println!("Failed cases:");
+            println!("{failed_cases:#?}");
         }
+
         if !errors.is_empty() {
             println!("Error cases:");
             println!("{errors:#?}");
-            error_count += errors.len();
         }
+
+        let error_count = failed_cases.len() + errors.len();
         if error_count == 0 {
             Ok(())
         } else {
@@ -169,20 +170,39 @@ impl<E: EnvController> Runner<E> {
         }
     }
 
-    async fn run_single_case(&self, db: &E::DB, path: &PathBuf) -> Result<bool> {
+    /// Return true when this case pass, otherwise false.
+    async fn run_single_case(&self, db: &E::DB, path: &Path) -> Result<bool> {
         let case_path = path.with_extension(&self.config.test_case_extension);
-        let case = TestCase::from_file(case_path, &self.config).await?;
-        let output_path = path.with_extension(&self.config.output_result_extension);
-        let mut output_file = Self::open_output_file(&output_path).await?;
+        let case = TestCase::from_file(&case_path, &self.config).await?;
+        let result_path = path.with_extension(&self.config.result_extension);
+        let mut result_file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .read(true)
+            .open(&result_path)
+            .await?;
 
+        // Read old result out for compare later
+        let mut old_result = String::new();
+        result_file.read_to_string(&mut old_result).await?;
+
+        // Execute testcase
+        let mut new_result = Cursor::new(Vec::new());
         let timer = Instant::now();
-        case.execute(db, &mut output_file).await?;
+        case.execute(db, &mut new_result).await?;
         let elapsed = timer.elapsed();
 
-        output_file.flush().await?;
-        let is_different = self.compare(&path).await?;
-        if !is_different {
-            remove_file(output_path).await?;
+        // Truncate and write new result back
+        result_file.set_len(0).await?;
+        result_file.seek(SeekFrom::Start(0)).await?;
+        result_file.write_all(new_result.get_ref()).await?;
+
+        // Compare old and new result
+        let new_result = String::from_utf8(new_result.into_inner()).expect("not utf8 string");
+        if let Some(diff) = self.compare(&old_result, &new_result) {
+            println!("Result unexpected, path:{case_path:?}");
+            println!("{diff}");
+            return Ok(false);
         }
 
         println!(
@@ -190,7 +210,8 @@ impl<E: EnvController> Runner<E> {
             path.as_os_str(),
             elapsed.as_millis()
         );
-        Ok(is_different)
+
+        Ok(true)
     }
 
     async fn collect_case_paths(&self, env: &str) -> Result<Vec<PathBuf>> {
@@ -229,48 +250,15 @@ impl<E: EnvController> Runner<E> {
         Ok(cases)
     }
 
-    async fn open_output_file<P: AsRef<Path>>(path: P) -> Result<File> {
-        Ok(OpenOptions::default()
-            .create(true)
-            .truncate(true)
-            .write(true)
-            .open(&path)
-            .await?)
-    }
-
-    /// Compare files' diff, return true if two files are different
-    async fn compare<P: AsRef<Path>>(&self, path: P) -> Result<bool> {
-        let mut result_lines = vec![];
-        File::open(
-            path.as_ref()
-                .with_extension(&self.config.expect_result_extension),
-        )
-        .await?
-        .read_to_end(&mut result_lines)
-        .await?;
-        let result_lines = String::from_utf8(result_lines)?;
-
-        let mut output_lines = vec![];
-        File::open(
-            path.as_ref()
-                .with_extension(&self.config.output_result_extension),
-        )
-        .await?
-        .read_to_end(&mut output_lines)
-        .await?;
-        let output_lines = String::from_utf8(output_lines)?;
-
-        let diff = diff_lines(&result_lines, &output_lines);
+    /// Compare result, return None if them are the same, else return diff changes
+    fn compare(&self, expected: &str, actual: &str) -> Option<String> {
+        let diff = diff_lines(expected, actual);
         let diff = diff.diff();
         let is_different = diff.iter().any(|d| !matches!(d, DiffOp::Equal(_)));
         if is_different {
-            println!(
-                "Result unexpected, path:{}",
-                path.as_ref().to_string_lossy()
-            );
-            println!("{}", SliceChangeset { diff });
+            return Some(format!("{}", SliceChangeset { diff }));
         }
 
-        Ok(is_different)
+        None
     }
 }

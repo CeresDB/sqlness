@@ -20,7 +20,7 @@ examples/
 ├── basic-case               # Testcase root directory
 │   └── simple               # One environment
 │       ├── config.toml      # Config file for current environment
-│       ├── select.result    # Expected result file
+│       ├── select.result    # Output result file
 │       └── select.sql       # Input SQL testcase
 ├── basic.rs                 # Entrypoint of this example
 
@@ -32,14 +32,15 @@ cargo run --example basic
 ```
 It will do following things:
 1. Collect all environments(first-level directory) under `basic-case`.
-2. Run testcases(`.sql` files) under environment one after one.
-   1. Write temporary result to `{testcase}.output`
-   2. Compare `{testcase}.output` with `{testcase}.result` using `diff`
+2. Run tests(`.sql` files) under environment one after one.
+   1. Before execution it will read `{testcase}.result`(create one if not exists) to memory for compare.
+   2. During execution it will collect query response and write to `{testcase}.result`
+   3. After execution it will compare the generated `{testcase}.result` with previous one, **PASS** when they are the same, and **FAIL** otherwise.
 3. Report result.
 
-Our target is to keep `*.result` file up to date, when `*.output` is equals to its corresponding result, the runner will delete it after executed.
-
-When there is any diffs, the runner will keep `*.output` for later investigation.
+Usually `result` files should be tracked in git, whenever there are failed tests, users should
+1. Update `result` to latest version(e.g. `git add`) if the newer result is right, or
+2. Restore `result` back to original version (e.g. `git checkout`), troubleshoot bugs in database implementation, and run tests again
 
 Below is the output of this example:
 ```bash
