@@ -40,7 +40,7 @@ It will do following things:
 
 Usually `result` files should be tracked in git, whenever there are failed tests, users should
 1. Update `result` to latest version(e.g. `git add`) if the newer result is right, or
-2. Restore `result` back to original version(e.g. `git checkout`), troubleshoot bugs in database implementation, and run tests again
+2. Restore `result` back to original version (e.g. `git checkout`), troubleshoot bugs in database implementation, and run tests again
 
 Below is the output of this example:
 ```bash
