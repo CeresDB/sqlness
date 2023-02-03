@@ -1,13 +1,13 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
-use std::io::Cursor;
+use std::io::{Cursor, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use prettydiff::basic::{DiffOp, SliceChangeset};
 use prettydiff::diff_lines;
 use tokio::fs::{read_dir, File, OpenOptions};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt};
 use tokio::time::Instant;
 use walkdir::WalkDir;
 
@@ -193,11 +193,8 @@ impl<E: EnvController> Runner<E> {
         let elapsed = timer.elapsed();
 
         // Truncate and write new result back
-        let mut result_file = OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .open(&result_path)
-            .await?;
+        result_file.set_len(0).await?;
+        result_file.seek(SeekFrom::Start(0)).await?;
         result_file.write_all(new_result.get_ref()).await?;
 
         // Compare old and new result
