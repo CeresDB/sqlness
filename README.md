@@ -19,7 +19,7 @@ $ tree examples/
 examples/
 ├── basic-case               # Testcase root directory
 │   └── simple               # One environment
-│       ├── config.toml      # Config file for current environment
+│       ├── config.toml      # Config file for current environment, optional
 │       ├── select.result    # Output result file
 │       └── select.sql       # Input SQL testcase
 ├── basic.rs                 # Entrypoint of this example
@@ -41,6 +41,11 @@ It will do following things:
 Usually `result` files should be tracked in git, whenever there are failed tests, users should
 1. Update `result` to latest version(e.g. `git add`) if the newer result is right, or
 2. Restore `result` back to original version (e.g. `git checkout`), troubleshoot bugs in database implementation, and run tests again
+
+Flowchart below illustrates the typical steps when write a test.
+<p align="center">
+  <img src="sqlness-flowchart.svg" />
+</p>
 
 Below is the output of this example:
 ```bash
