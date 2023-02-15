@@ -3,6 +3,7 @@
 use std::io::{Cursor, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use std::sync::Arc;
 
 use prettydiff::basic::{DiffOp, SliceChangeset};
 use prettydiff::diff_lines;
@@ -13,6 +14,8 @@ use walkdir::WalkDir;
 
 use crate::case::TestCase;
 use crate::error::{Result, SqlnessError};
+use crate::interceptor::arg::ArgInterceptorFactory;
+use crate::interceptor::InterceptorFactoryRef;
 use crate::{config::Config, environment::EnvController};
 
 /// The entrypoint of this crate.
@@ -33,6 +36,7 @@ use crate::{config::Config, environment::EnvController};
 pub struct Runner<E: EnvController> {
     config: Config,
     env_controller: E,
+    interceptor_factories: Vec<InterceptorFactoryRef>,
 }
 
 impl<E: EnvController> Runner<E> {
@@ -56,6 +60,7 @@ impl<E: EnvController> Runner<E> {
         Ok(Self {
             config,
             env_controller,
+            interceptor_factories: Self::default_interceptor(),
         })
     }
 
@@ -63,6 +68,7 @@ impl<E: EnvController> Runner<E> {
         Ok(Self {
             config,
             env_controller,
+            interceptor_factories: Self::default_interceptor(),
         })
     }
 
@@ -173,7 +179,9 @@ impl<E: EnvController> Runner<E> {
     /// Return true when this case pass, otherwise false.
     async fn run_single_case(&self, db: &E::DB, path: &Path) -> Result<bool> {
         let case_path = path.with_extension(&self.config.test_case_extension);
-        let case = TestCase::from_file(&case_path, &self.config).await?;
+        let mut case =
+            TestCase::from_file(&case_path, &self.config, self.interceptor_factories.clone())
+                .await?;
         let result_path = path.with_extension(&self.config.result_extension);
         let mut result_file = OpenOptions::new()
             .create(true)
@@ -261,5 +269,9 @@ impl<E: EnvController> Runner<E> {
         }
 
         None
+    }
+
+    fn default_interceptor() -> Vec<InterceptorFactoryRef> {
+        vec![Arc::new(ArgInterceptorFactory {})]
     }
 }

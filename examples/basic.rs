@@ -3,14 +3,14 @@
 use std::{fmt::Display, path::Path};
 
 use async_trait::async_trait;
-use sqlness::{ConfigBuilder, Database, EnvController, Runner};
+use sqlness::{ConfigBuilder, Database, EnvController, QueryContext, Runner};
 
 struct MyController;
 struct MyDB;
 
 #[async_trait]
 impl Database for MyDB {
-    async fn query(&self, _query: String) -> Box<dyn Display> {
+    async fn query(&self, _context: QueryContext, _query: String) -> Box<dyn Display> {
         // Implement query logic here
         // println!("Exec {}...", query);
         return Box::new("ok".to_string());

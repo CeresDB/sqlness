@@ -8,14 +8,14 @@
 use std::{fmt::Display, fs::File, path::Path};
 
 use async_trait::async_trait;
-use sqlness::{ConfigBuilder, Database, EnvController, Runner};
+use sqlness::{ConfigBuilder, Database, EnvController, QueryContext, Runner};
 
 struct MyController;
 struct MyDB;
 
 #[async_trait]
 impl Database for MyDB {
-    async fn query(&self, _query: String) -> Box<dyn Display> {
+    async fn query(&self, _ctx: QueryContext, _query: String) -> Box<dyn Display> {
         return Box::new("Unexpected".to_string());
     }
 }

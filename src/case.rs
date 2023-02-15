@@ -1,13 +1,18 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
-use std::{fmt::Display, path::Path};
+use std::{collections::HashMap, fmt::Display, path::Path};
 
 use tokio::{
     fs::File,
     io::{AsyncBufReadExt, AsyncWrite, AsyncWriteExt, BufReader},
 };
 
-use crate::{config::Config, error::Result, Database, SqlnessError};
+use crate::{
+    config::Config,
+    error::Result,
+    interceptor::{InterceptorFactoryRef, InterceptorRef},
+    Database, SqlnessError,
+};
 
 const COMMENT_PREFIX: &str = "--";
 
@@ -17,7 +22,11 @@ pub(crate) struct TestCase {
 }
 
 impl TestCase {
-    pub(crate) async fn from_file<P: AsRef<Path>>(path: P, cfg: &Config) -> Result<Self> {
+    pub(crate) async fn from_file<P: AsRef<Path>>(
+        path: P,
+        cfg: &Config,
+        interceptor_factories: Vec<InterceptorFactoryRef>,
+    ) -> Result<Self> {
         let file = File::open(path.as_ref())
             .await
             .map_err(|e| SqlnessError::ReadPath {
@@ -32,7 +41,7 @@ impl TestCase {
         while let Some(line) = lines.next_line().await? {
             // intercept command start with INTERCEPTOR_PREFIX
             if line.starts_with(&cfg.interceptor_prefix) {
-                query.push_interceptor(line);
+                query.push_interceptor(&cfg, line);
                 continue;
             }
 
@@ -46,7 +55,7 @@ impl TestCase {
             // SQL statement ends with ';'
             if line.ends_with(';') {
                 queries.push(query);
-                query = Query::default();
+                query = Query::with_interceptor_factories(interceptor_factories.clone());
             } else {
                 query.append_query_line("\n");
             }
@@ -58,11 +67,11 @@ impl TestCase {
         })
     }
 
-    pub(crate) async fn execute<W>(&self, db: &dyn Database, writer: &mut W) -> Result<()>
+    pub(crate) async fn execute<W>(&mut self, db: &dyn Database, writer: &mut W) -> Result<()>
     where
         W: AsyncWrite + Unpin,
     {
-        for query in &self.queries {
+        for query in &mut self.queries {
             query.execute(db, writer).await?;
         }
 
@@ -76,29 +85,75 @@ impl Display for TestCase {
     }
 }
 
+/// A String-to-String map used as query context.
+#[derive(Default, Debug)]
+pub struct QueryContext {
+    pub(crate) context: HashMap<String, String>,
+}
+
 #[derive(Default)]
 struct Query {
     query_lines: Vec<String>,
-    interceptors: Vec<String>,
+    interceptor_lines: Vec<String>,
+    interceptor_factories: Vec<InterceptorFactoryRef>,
+    interceptors: Vec<InterceptorRef>,
 }
 
 impl Query {
-    fn push_interceptor(&mut self, post_process: String) {
-        self.interceptors.push(post_process);
+    pub fn with_interceptor_factories(interceptor_factories: Vec<InterceptorFactoryRef>) -> Self {
+        Self {
+            interceptor_factories,
+            ..Default::default()
+        }
+    }
+
+    fn push_interceptor(&mut self, cfg: &Config, interceptor_line: String) {
+        let interceptor_text = interceptor_line
+            .trim_start_matches(&cfg.interceptor_prefix)
+            .trim_start();
+        for factories in &self.interceptor_factories {
+            if let Some(interceptor) = factories.try_new(interceptor_text) {
+                self.interceptors.push(interceptor);
+            }
+        }
+        self.interceptor_lines.push(interceptor_line);
     }
 
     fn append_query_line(&mut self, line: &str) {
         self.query_lines.push(line.to_string());
     }
 
-    async fn execute<W>(&self, db: &dyn Database, writer: &mut W) -> Result<()>
+    async fn execute<W>(&mut self, db: &dyn Database, writer: &mut W) -> Result<()>
     where
         W: AsyncWrite + Unpin,
     {
-        let result = db.query(self.concat_query_lines()).await;
+        let context = self.before_execute_intercept();
+
+        let mut result = db
+            .query(context, self.concat_query_lines())
+            .await
+            .to_string();
+
+        self.after_execute_intercept(&mut result);
         self.write_result(writer, result.to_string()).await?;
 
         Ok(())
+    }
+
+    fn before_execute_intercept(&mut self) -> QueryContext {
+        let mut context = QueryContext::default();
+
+        for interceptor in &self.interceptors {
+            interceptor.before_execute(&mut self.query_lines, &mut context);
+        }
+
+        context
+    }
+
+    fn after_execute_intercept(&mut self, result: &mut String) {
+        for interceptor in &self.interceptors {
+            interceptor.after_execute(result);
+        }
     }
 
     fn concat_query_lines(&self) -> String {
@@ -112,7 +167,7 @@ impl Query {
     where
         W: AsyncWrite + Unpin,
     {
-        for interceptor in &self.interceptors {
+        for interceptor in &self.interceptor_lines {
             writer.write_all(interceptor.as_bytes()).await?;
         }
         for line in &self.query_lines {

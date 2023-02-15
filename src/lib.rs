@@ -59,8 +59,10 @@ mod config;
 mod database;
 mod environment;
 mod error;
+mod interceptor;
 mod runner;
 
+pub use case::QueryContext;
 pub use config::{Config, ConfigBuilder};
 pub use database::Database;
 pub use environment::EnvController;
