@@ -35,7 +35,7 @@ impl TestCase {
             })?;
 
         let mut queries = vec![];
-        let mut query = Query::default();
+        let mut query = Query::with_interceptor_factories(interceptor_factories.clone());
 
         let mut lines = BufReader::new(file).lines();
         while let Some(line) = lines.next_line().await? {
@@ -88,7 +88,7 @@ impl Display for TestCase {
 /// A String-to-String map used as query context.
 #[derive(Default, Debug)]
 pub struct QueryContext {
-    pub(crate) context: HashMap<String, String>,
+    pub context: HashMap<String, String>,
 }
 
 #[derive(Default)]
@@ -169,6 +169,7 @@ impl Query {
     {
         for interceptor in &self.interceptor_lines {
             writer.write_all(interceptor.as_bytes()).await?;
+            writer.write("\n".as_bytes()).await?;
         }
         for line in &self.query_lines {
             writer.write_all(line.as_bytes()).await?;

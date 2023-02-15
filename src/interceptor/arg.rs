@@ -37,8 +37,9 @@ pub struct ArgInterceptorFactory;
 
 impl InterceptorFactory for ArgInterceptorFactory {
     fn try_new(&self, interceptor: &str) -> Option<InterceptorRef> {
-        if interceptor.contains(PREFIX) {
-            let args = Self::separate_key_value_pairs(interceptor);
+        if interceptor.starts_with(PREFIX) {
+            let args =
+                Self::separate_key_value_pairs(interceptor.trim_start_matches(PREFIX).trim_start());
             Some(Box::new(ArgInterceptor { args }))
         } else {
             None
