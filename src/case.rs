@@ -41,7 +41,7 @@ impl TestCase {
         while let Some(line) = lines.next_line().await? {
             // intercept command start with INTERCEPTOR_PREFIX
             if line.starts_with(&cfg.interceptor_prefix) {
-                query.push_interceptor(&cfg, line);
+                query.push_interceptor(cfg, line);
                 continue;
             }
 

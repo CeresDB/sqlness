@@ -13,12 +13,11 @@ struct MyDB;
 #[async_trait]
 impl Database for MyDB {
     async fn query(&self, ctx: QueryContext, _query: String) -> Box<dyn Display> {
-        println!("Exec query with context: {:#?}", ctx);
         let mut args = ctx.context.into_iter().collect::<Vec<_>>();
         args.sort();
         let result = args
             .into_iter()
-            .map(|(k, v)| format!("{}={}", k, v))
+            .map(|(k, v)| format!("{k}={v}"))
             .collect::<Vec<_>>()
             .join("\n");
         return Box::new(result);
