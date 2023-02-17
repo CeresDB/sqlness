@@ -34,6 +34,7 @@
 //! │   ├── config.toml
 //! │   ├── dml
 //! │   │   └── basic.sql
+//! │   │   └── basic.result
 //! │   ├── ddl
 //! │   └── system
 //! └── remote
@@ -51,7 +52,7 @@
 //! Note that only the first layer of sub-directory is special (for distinguash
 //! different environments). All deeper layers are treated as the same. E.g.,
 //! both `sqlness/local/dml/basic.sql` and `sqlness/local/dml/another-dir/basic.sql`
-//! will be run under the `local` in the same pass.
+//! will be run under the `local` env in the same pass.
 
 mod case;
 mod config;

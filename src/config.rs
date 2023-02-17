@@ -15,14 +15,10 @@ pub struct Config {
     #[builder(default = "Config::default_test_case_extension()")]
     #[serde(default = "Config::default_test_case_extension")]
     pub test_case_extension: String,
-    /// Default value: `output`
-    #[builder(default = "Config::default_output_result_extension()")]
-    #[serde(default = "Config::default_output_result_extension")]
-    pub output_result_extension: String,
     /// Default value: `result`
-    #[builder(default = "Config::default_expect_result_extension()")]
-    #[serde(default = "Config::default_expect_result_extension")]
-    pub expect_result_extension: String,
+    #[builder(default = "Config::default_result_extension()")]
+    #[serde(default = "Config::default_result_extension")]
+    pub result_extension: String,
     /// Default value: `-- SQLNESS`
     #[builder(default = "Config::default_interceptor_prefix()")]
     #[serde(default = "Config::default_interceptor_prefix")]
@@ -39,6 +35,11 @@ pub struct Config {
     #[builder(default = "Config::default_test_filter()")]
     #[serde(default = "Config::default_test_filter")]
     pub test_filter: String,
+    /// Whether follow symbolic links when searching test case files.
+    /// Defaults to "false" (not follow symbolic links).
+    #[builder(default = "false")]
+    #[serde(default = "Config::default_follow_links")]
+    pub follow_links: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Builder)]
@@ -55,11 +56,7 @@ impl Config {
         "sql".to_string()
     }
 
-    fn default_output_result_extension() -> String {
-        "output".to_string()
-    }
-
-    fn default_expect_result_extension() -> String {
+    fn default_result_extension() -> String {
         "result".to_string()
     }
 
@@ -77,6 +74,10 @@ impl Config {
 
     fn default_test_filter() -> String {
         "".to_string()
+    }
+
+    fn default_follow_links() -> bool {
+        false
     }
 }
 
