@@ -46,12 +46,12 @@ impl DatabaseBuilder for MysqlDatabaseBuilder {
 #[async_trait]
 impl Database for MysqlDatabase {
     async fn query(&self, query: String) -> Box<dyn Display> {
-        Self::execute(query, Arc::clone(&self.conn)).await
+        Self::execute(&query, Arc::clone(&self.conn)).await
     }
 }
 
 impl MysqlDatabase {
-    async fn execute(query: String, connect: Arc<Mutex<Conn>>) -> Box<dyn Display> {
+    async fn execute(query: &str, connect: Arc<Mutex<Conn>>) -> Box<dyn Display> {
         let mut conn = match connect.lock() {
             Ok(conn) => conn,
             Err(e) => return Box::new(format!("Failed to get connect, err: {:?}", e)),
@@ -60,6 +60,16 @@ impl MysqlDatabase {
         let result = conn.query_iter(query);
         Box::new(match result {
             Ok(result) => {
+                for row in result {
+                    match row {
+                        Ok(row) => {
+                            println!("{:?}", row);
+                        }
+                        Err(e) => {
+                            todo!()
+                        }
+                    }
+                }
                 todo!()
             }
             Err(e) => format!("Failed to execute query, err: {:?}", e),
@@ -76,4 +86,45 @@ where
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use std::sync::{Mutex, Arc};
+
+    use mysql::{OptsBuilder, Conn};
+
+    use crate::{
+        config::DatabaseConnConfig,
+        database_impl::{setup::{DatabaseBuilder, MysqlDatabase}, MysqlDatabaseBuilder}, SqlnessError,
+    };
+
+    macro_rules! aw {
+        ($e:expr) => {
+            tokio_test::block_on($e)
+        };
+    }
+
+    #[test]
+    fn test_db() {
+        let config = DatabaseConnConfig {
+            ip_or_host: "100.100.30.53".to_string(),
+            tcp_port: 3306,
+            user: "root".to_string(),
+            pass: Some("123456".to_string()),
+            db_name: "test".to_string(),
+        };
+        let opts = OptsBuilder::new()
+            .ip_or_hostname(Some(config.ip_or_host.clone()))
+            .tcp_port(config.tcp_port)
+            .user(Some(config.user.clone()))
+            .pass(config.pass.clone())
+            .db_name(Some(config.db_name.clone()));
+
+        let conn = Conn::new(opts).map_err(|e| SqlnessError::ConnFailed { source: e, config }).unwrap();
+        let db = MysqlDatabase {
+            conn: Arc::new(Mutex::new(conn)),
+        };
+        let query = "select * from hello";
+        let result = MysqlDatabase::execute(query, Arc::clone(&db.conn));
+        aw!(result);
+        println!("ok");
+    }
+}
