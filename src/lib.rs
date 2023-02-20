@@ -57,10 +57,10 @@
 mod case;
 mod config;
 mod database;
+mod database_impl;
 mod environment;
 mod error;
 mod runner;
-mod database_impl;
 
 pub use config::{Config, ConfigBuilder};
 pub use database::Database;

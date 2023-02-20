@@ -36,10 +36,7 @@ pub enum SqlnessError {
     },
 
     #[error("Failed to execute the sql statement. query: {query}, error: {source}")]
-    QueryFailed {
-        source: mysql::Error,
-        query: String
-    }
+    QueryFailed { source: mysql::Error, query: String },
 }
 
 pub(crate) type Result<T> = std::result::Result<T, SqlnessError>;
