@@ -27,7 +27,7 @@ pub struct MysqlDatabaseBuilder;
 ///          tcp_port: 3306,
 ///          user: "root".to_string(),
 ///          pass: Some("123456".to_string()),
-///          db_name: "hellp".to_string(),
+///          db_name: "hello".to_string(),
 ///      };
 
 ///      let opts = OptsBuilder::new()
