@@ -11,7 +11,7 @@ license = "Apache-2.0"
 description = "SQL integration test harness"
 
 [dev-dependencies]
-tokio-test = "*"
+tokio-test = "0.4.2"
 
 [dependencies]
 async-trait = "0.1"

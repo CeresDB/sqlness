@@ -13,7 +13,9 @@ use crate::{config::DatabaseConnConfig, error::Result, Database, SqlnessError};
 
 #[async_trait]
 pub trait DatabaseBuilder: Send + Sync + Default {
-    async fn build(&self, config: DatabaseConnConfig) -> Result<Box<dyn Database>>;
+    type Database: Database;
+
+    async fn build(&self, config: DatabaseConnConfig) -> Result<Self::Database>;
 }
 
 #[derive(Default)]
@@ -59,7 +61,9 @@ struct MysqlFormatter {
 
 #[async_trait]
 impl DatabaseBuilder for MysqlDatabaseBuilder {
-    async fn build(&self, config: DatabaseConnConfig) -> Result<Box<dyn Database>> {
+    type Database = MysqlDatabase;
+
+    async fn build(&self, config: DatabaseConnConfig) -> Result<Self::Database> {
         let opts = OptsBuilder::new()
             .ip_or_hostname(Some(config.ip_or_host.clone()))
             .tcp_port(config.tcp_port)
@@ -68,9 +72,9 @@ impl DatabaseBuilder for MysqlDatabaseBuilder {
             .db_name(Some(config.db_name.clone()));
 
         let conn = Conn::new(opts).map_err(|e| SqlnessError::ConnFailed { source: e, config })?;
-        Ok(Box::new(MysqlDatabase {
+        Ok(MysqlDatabase {
             conn: Arc::new(Mutex::new(conn)),
-        }))
+        })
     }
 }
 
@@ -111,14 +115,6 @@ impl MysqlDatabase {
             Err(e) => format!("Failed to execute query, err: {:?}", e),
         })
     }
-}
-
-pub async fn _build_default_database<T>(config: DatabaseConnConfig) -> Result<Box<dyn Database>>
-where
-    T: DatabaseBuilder,
-{
-    let builder = T::default();
-    builder.build(config).await
 }
 
 impl Display for MysqlFormatter {

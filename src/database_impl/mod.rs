@@ -3,4 +3,3 @@
 mod setup;
 
 pub use setup::MysqlDatabaseBuilder;
-pub use setup::_build_default_database;
