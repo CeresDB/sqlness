@@ -42,7 +42,7 @@ pub struct Config {
     pub follow_links: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Builder)]
+#[derive(Debug)]
 pub struct DatabaseConnConfig {
     pub ip_or_host: String,
     pub tcp_port: u16,
