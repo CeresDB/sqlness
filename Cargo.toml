@@ -10,9 +10,6 @@ repository = "https://github.com/CeresDB/sqlness"
 license = "Apache-2.0"
 description = "SQL integration test harness"
 
-[dev-dependencies]
-tokio-test = "0.4.2"
-
 [dependencies]
 async-trait = "0.1"
 derive_builder = "0.11"
@@ -21,5 +18,9 @@ prettydiff = "0.6.2"
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
 tokio = { version = "1.23", features = ["full"] }
+tokio-test = {version = "0.4.2", optional = true}
 toml = "0.5"
 walkdir = "2.3"
+
+[features]
+default = []
