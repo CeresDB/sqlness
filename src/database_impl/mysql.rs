@@ -1,5 +1,6 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
+/// DatabaseBuilder for MySQL.
 use std::{
     borrow::{Borrow, Cow},
     fmt::Display,
@@ -9,17 +10,12 @@ use std::{
 use async_trait::async_trait;
 use mysql::{prelude::Queryable, Conn, OptsBuilder, Row};
 
-use crate::{config::DatabaseConnConfig, error::Result, Database, SqlnessError};
-
-#[async_trait]
-pub trait DatabaseBuilder: Send + Sync + Default {
-    type Database: Database;
-
-    async fn build(&self, config: DatabaseConnConfig) -> Result<Self::Database>;
-}
+use crate::{
+    config::DatabaseConnConfig, database::DatabaseBuilder, error::Result, Database, SqlnessError,
+};
 
 #[derive(Default)]
-pub struct MysqlDatabaseBuilder;
+pub struct MysqlBuilder;
 
 /// How to test:
 /// ```rust, ignore, no_run
@@ -60,10 +56,11 @@ struct MysqlFormatter {
 }
 
 #[async_trait]
-impl DatabaseBuilder for MysqlDatabaseBuilder {
-    type Database = MysqlDatabase;
+impl DatabaseBuilder for MysqlBuilder {
+    type DB = MysqlDatabase;
+    type Err = SqlnessError;
 
-    async fn build(&self, config: DatabaseConnConfig) -> Result<Self::Database> {
+    async fn build(&self, config: DatabaseConnConfig) -> Result<Self::DB> {
         let opts = OptsBuilder::new()
             .ip_or_hostname(Some(config.ip_or_host.clone()))
             .tcp_port(config.tcp_port)
@@ -89,7 +86,7 @@ impl MysqlDatabase {
     async fn execute(query: &str, connect: Arc<Mutex<Conn>>) -> Box<dyn Display> {
         let mut conn = match connect.lock() {
             Ok(conn) => conn,
-            Err(e) => return Box::new(format!("Failed to get connect, err: {:?}", e)),
+            Err(e) => return Box::new(format!("Failed to get connection, err: {:?}", e)),
         };
 
         let result = conn.query_iter(query);
@@ -101,7 +98,7 @@ impl MysqlDatabase {
                     match row {
                         Ok(r) => rows.push(r),
                         Err(e) => {
-                            return Box::new(format!("Failed to parser query result, err: {:?}", e))
+                            return Box::new(format!("Failed to parse query result, err: {:?}", e))
                         }
                     }
                 }

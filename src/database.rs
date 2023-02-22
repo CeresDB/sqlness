@@ -2,6 +2,7 @@
 
 use std::fmt::Display;
 
+use crate::config::DatabaseConnConfig;
 use async_trait::async_trait;
 
 /// Query executor.
@@ -14,4 +15,12 @@ use async_trait::async_trait;
 #[async_trait]
 pub trait Database {
     async fn query(&self, query: String) -> Box<dyn Display>;
+}
+
+#[async_trait]
+pub trait DatabaseBuilder: Send + Sync + Default {
+    type DB: Database;
+    type Err;
+
+    async fn build(&self, config: DatabaseConnConfig) -> Result<Self::DB, Self::Err>;
 }

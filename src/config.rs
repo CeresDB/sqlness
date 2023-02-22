@@ -1,7 +1,5 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
-use std::fmt::Display;
-
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
@@ -42,15 +40,6 @@ pub struct Config {
     pub follow_links: bool,
 }
 
-#[derive(Debug)]
-pub struct DatabaseConnConfig {
-    pub ip_or_host: String,
-    pub tcp_port: u16,
-    pub user: String,
-    pub pass: Option<String>,
-    pub db_name: String,
-}
-
 impl Config {
     fn default_test_case_extension() -> String {
         "sql".to_string()
@@ -81,14 +70,12 @@ impl Config {
     }
 }
 
-impl Display for DatabaseConnConfig {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("DatabaseConfig")
-            .field("ip_or_host", &self.ip_or_host)
-            .field("tcp_port", &self.tcp_port)
-            .field("user", &self.user)
-            .field("pass", self.pass.as_ref().unwrap_or(&"".to_string()))
-            .field("db_name", &self.db_name)
-            .finish()
-    }
+/// Config for DatabaseBuilder
+#[derive(Debug)]
+pub struct DatabaseConnConfig {
+    pub ip_or_host: String,
+    pub tcp_port: u16,
+    pub user: String,
+    pub pass: Option<String>,
+    pub db_name: String,
 }

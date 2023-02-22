@@ -29,7 +29,7 @@ pub enum SqlnessError {
     #[error("Run failed. {count} cases can't pass")]
     RunFailed { count: usize },
 
-    #[error("Failed to connection database server. config: {config}, error: {source}")]
+    #[error("Failed to connect database server. config: {config:?}, error: {source}")]
     ConnFailed {
         source: mysql::Error,
         config: DatabaseConnConfig,
