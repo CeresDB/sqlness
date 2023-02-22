@@ -26,16 +26,6 @@ pub enum SqlnessError {
 
     #[error("Run failed. {count} cases can't pass")]
     RunFailed { count: usize },
-
-    #[cfg(feature = "mysql")]
-    #[error("Failed to connect database server. config: {config:?}, error: {source}")]
-    ConnFailed {
-        source: mysql::Error,
-        config: crate::config::DatabaseConnConfig,
-    },
-
-    #[error("Failed to execute the sql statement. query: {query}, error: {source}")]
-    QueryFailed { source: mysql::Error, query: String },
 }
 
 pub(crate) type Result<T> = std::result::Result<T, SqlnessError>;

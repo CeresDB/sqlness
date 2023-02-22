@@ -10,9 +10,7 @@ use std::{
 use async_trait::async_trait;
 use mysql::{prelude::Queryable, Conn, OptsBuilder, Row};
 
-use crate::{
-    config::DatabaseConnConfig, database::DatabaseBuilder, error::Result, Database, SqlnessError,
-};
+use crate::{config::DatabaseConnConfig, database::DatabaseBuilder, Database};
 
 #[derive(Default)]
 pub struct MysqlBuilder;
@@ -58,17 +56,17 @@ struct MysqlFormatter {
 #[async_trait]
 impl DatabaseBuilder for MysqlBuilder {
     type DB = MysqlDatabase;
-    type Err = SqlnessError;
+    type Err = mysql::Error;
 
-    async fn build(&self, config: DatabaseConnConfig) -> Result<Self::DB> {
+    async fn build(&self, config: DatabaseConnConfig) -> Result<Self::DB, Self::Err> {
         let opts = OptsBuilder::new()
             .ip_or_hostname(Some(config.ip_or_host.clone()))
             .tcp_port(config.tcp_port)
             .user(Some(config.user.clone()))
             .pass(config.pass.clone())
-            .db_name(Some(config.db_name.clone()));
+            .db_name(Some(config.db_name));
 
-        let conn = Conn::new(opts).map_err(|e| SqlnessError::ConnFailed { source: e, config })?;
+        let conn = Conn::new(opts)?;
         Ok(MysqlDatabase {
             conn: Arc::new(Mutex::new(conn)),
         })

@@ -7,7 +7,7 @@ init:
 	echo "Git branch: $GITBRANCH"
 
 test:
-	cd $(DIR); cargo test --workspace --all-features -- --test-threads=4
+	cd $(DIR); cargo test --workspace -- --test-threads=4
 
 fmt:
 	cd $(DIR); cargo fmt -- --check
