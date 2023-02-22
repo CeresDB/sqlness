@@ -32,9 +32,7 @@ pub struct MysqlBuilder;
 ///          .user(Some(config.user.clone()))
 ///          .pass(config.pass.clone())
 ///          .db_name(Some(config.db_name.clone()));
-///      let conn = Conn::new(opts)
-///          .map_err(|e| SqlnessError::ConnFailed { source: e, config })
-///          .unwrap();
+///      let conn = Conn::new(opts).unwrap();
 ///      let db = MysqlDatabase {
 ///          conn: Arc::new(Mutex::new(conn)),
 ///      };

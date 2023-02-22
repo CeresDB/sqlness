@@ -18,7 +18,7 @@ pub trait Database {
 }
 
 #[async_trait]
-pub trait DatabaseBuilder: Send + Sync + Default {
+pub trait DatabaseBuilder {
     type DB: Database;
     type Err;
 
