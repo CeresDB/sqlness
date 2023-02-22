@@ -6,10 +6,6 @@ init:
 	echo "init"
 	echo "Git branch: $GITBRANCH"
 
-build:
-	ls -alh
-	cd $(DIR); cargo build --release
-
 test:
 	cd $(DIR); cargo test --workspace -- --test-threads=4
 
