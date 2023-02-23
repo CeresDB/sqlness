@@ -41,7 +41,7 @@ impl TestCase {
         while let Some(line) = lines.next_line().await? {
             // intercept command start with INTERCEPTOR_PREFIX
             if line.starts_with(&cfg.interceptor_prefix) {
-                query.push_interceptor(cfg, line);
+                query.push_interceptor(&cfg.interceptor_prefix, line);
                 continue;
             }
 
@@ -107,9 +107,9 @@ impl Query {
         }
     }
 
-    fn push_interceptor(&mut self, cfg: &Config, interceptor_line: String) {
+    fn push_interceptor(&mut self, interceptor_prefix: &str, interceptor_line: String) {
         let interceptor_text = interceptor_line
-            .trim_start_matches(&cfg.interceptor_prefix)
+            .trim_start_matches(interceptor_prefix)
             .trim_start();
         for factories in &self.interceptor_factories {
             if let Some(interceptor) = factories.try_new(interceptor_text) {

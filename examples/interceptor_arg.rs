@@ -2,7 +2,7 @@
 
 //! Shows how an ARG interceptor works.
 
-use std::{fmt::Display, fs::File, path::Path};
+use std::{fmt::Display, path::Path};
 
 use async_trait::async_trait;
 use sqlness::{ConfigBuilder, Database, EnvController, QueryContext, Runner};
@@ -24,18 +24,12 @@ impl Database for MyDB {
     }
 }
 
-// Used as a flag to indicate MyDB has started
-const LOCK_FILE: &str = "/tmp/sqlness-interceptor-arg-example.lock";
-
 impl MyDB {
     fn new(_env: &str, _config: Option<&Path>) -> Self {
-        File::create(LOCK_FILE).unwrap();
         MyDB
     }
 
-    fn stop(self) {
-        std::fs::remove_file(LOCK_FILE).unwrap();
-    }
+    fn stop(self) {}
 }
 
 #[async_trait]
