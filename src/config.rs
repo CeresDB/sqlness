@@ -69,3 +69,13 @@ impl Config {
         false
     }
 }
+
+/// Config for DatabaseBuilder
+#[derive(Debug)]
+pub struct DatabaseConnConfig {
+    pub ip_or_host: String,
+    pub tcp_port: u16,
+    pub user: String,
+    pub pass: Option<String>,
+    pub db_name: String,
+}
