@@ -10,7 +10,7 @@ use std::{
 use async_trait::async_trait;
 use mysql::{prelude::Queryable, Conn, OptsBuilder, Row};
 
-use crate::{config::DatabaseConnConfig, database::DatabaseBuilder, Database};
+use crate::{config::DatabaseConnConfig, database::DatabaseBuilder, Database, QueryContext};
 
 #[derive(Default)]
 pub struct MysqlBuilder;
@@ -73,7 +73,7 @@ impl DatabaseBuilder for MysqlBuilder {
 
 #[async_trait]
 impl Database for MysqlDatabase {
-    async fn query(&self, query: String) -> Box<dyn Display> {
+    async fn query(&self, _: QueryContext, query: String) -> Box<dyn Display> {
         Self::execute(&query, Arc::clone(&self.conn)).await
     }
 }
