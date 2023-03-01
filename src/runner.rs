@@ -70,10 +70,10 @@ impl<E: EnvController> Runner<E> {
     }
 
     pub async fn run(&self) -> Result<()> {
-        let environments = self.collect_env().await?;
+        let environments = self.collect_env()?;
         let mut errors = Vec::new();
         for env in environments {
-            let env_config = self.read_env_config(&env).await;
+            let env_config = self.read_env_config(&env);
             let config_path = env_config.as_path();
             let config_path = if config_path.exists() {
                 Some(config_path)
@@ -103,7 +103,7 @@ impl<E: EnvController> Runner<E> {
         Ok(())
     }
 
-    async fn read_env_config(&self, env: &str) -> PathBuf {
+    fn read_env_config(&self, env: &str) -> PathBuf {
         let mut path_buf = std::path::PathBuf::new();
         path_buf.push(&self.config.case_dir);
         path_buf.push(env);
@@ -112,7 +112,7 @@ impl<E: EnvController> Runner<E> {
         path_buf
     }
 
-    async fn collect_env(&self) -> Result<Vec<String>> {
+    fn collect_env(&self) -> Result<Vec<String>> {
         let mut result = vec![];
 
         for dir in read_dir(&self.config.case_dir)? {
