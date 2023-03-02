@@ -1,10 +1,11 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
-use std::{collections::HashMap, fmt::Display, path::Path};
-
-use tokio::{
+use std::{
+    collections::HashMap,
+    fmt::Display,
     fs::File,
-    io::{AsyncBufReadExt, AsyncWrite, AsyncWriteExt, BufReader},
+    io::{BufRead, BufReader, Write},
+    path::Path,
 };
 
 use crate::{
@@ -22,23 +23,22 @@ pub(crate) struct TestCase {
 }
 
 impl TestCase {
-    pub(crate) async fn from_file<P: AsRef<Path>>(
+    pub(crate) fn from_file<P: AsRef<Path>>(
         path: P,
         cfg: &Config,
         interceptor_factories: Vec<InterceptorFactoryRef>,
     ) -> Result<Self> {
-        let file = File::open(path.as_ref())
-            .await
-            .map_err(|e| SqlnessError::ReadPath {
-                source: e,
-                path: path.as_ref().to_path_buf(),
-            })?;
+        let file = File::open(path.as_ref()).map_err(|e| SqlnessError::ReadPath {
+            source: e,
+            path: path.as_ref().to_path_buf(),
+        })?;
 
         let mut queries = vec![];
         let mut query = Query::with_interceptor_factories(interceptor_factories.clone());
 
-        let mut lines = BufReader::new(file).lines();
-        while let Some(line) = lines.next_line().await? {
+        let reader = BufReader::new(file);
+        for line in reader.lines() {
+            let line = line?;
             // intercept command start with INTERCEPTOR_PREFIX
             if line.starts_with(&cfg.interceptor_prefix) {
                 query.push_interceptor(&cfg.interceptor_prefix, line);
@@ -69,7 +69,7 @@ impl TestCase {
 
     pub(crate) async fn execute<W>(&mut self, db: &dyn Database, writer: &mut W) -> Result<()>
     where
-        W: AsyncWrite + Unpin,
+        W: Write,
     {
         for query in &mut self.queries {
             query.execute(db, writer).await?;
@@ -125,7 +125,7 @@ impl Query {
 
     async fn execute<W>(&mut self, db: &dyn Database, writer: &mut W) -> Result<()>
     where
-        W: AsyncWrite + Unpin,
+        W: Write,
     {
         let context = self.before_execute_intercept();
 
@@ -135,7 +135,7 @@ impl Query {
             .to_string();
 
         self.after_execute_intercept(&mut result);
-        self.write_result(writer, result.to_string()).await?;
+        self.write_result(writer, result.to_string())?;
 
         Ok(())
     }
@@ -163,20 +163,20 @@ impl Query {
     }
 
     #[allow(clippy::unused_io_amount)]
-    async fn write_result<W>(&self, writer: &mut W, result: String) -> Result<()>
+    fn write_result<W>(&self, writer: &mut W, result: String) -> Result<()>
     where
-        W: AsyncWrite + Unpin,
+        W: Write,
     {
         for interceptor in &self.interceptor_lines {
-            writer.write_all(interceptor.as_bytes()).await?;
-            writer.write("\n".as_bytes()).await?;
+            writer.write_all(interceptor.as_bytes())?;
+            writer.write("\n".as_bytes())?;
         }
         for line in &self.query_lines {
-            writer.write_all(line.as_bytes()).await?;
+            writer.write_all(line.as_bytes())?;
         }
-        writer.write("\n\n".as_bytes()).await?;
-        writer.write_all(result.as_bytes()).await?;
-        writer.write("\n\n".as_bytes()).await?;
+        writer.write("\n\n".as_bytes())?;
+        writer.write_all(result.as_bytes())?;
+        writer.write("\n\n".as_bytes())?;
 
         Ok(())
     }

@@ -1,15 +1,14 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
-use std::io::{Cursor, SeekFrom};
+use std::fs::{read_dir, File, OpenOptions};
+use std::io::{Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
+use std::time::Instant;
 
 use prettydiff::basic::{DiffOp, SliceChangeset};
 use prettydiff::diff_lines;
-use tokio::fs::{read_dir, File, OpenOptions};
-use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt};
-use tokio::time::Instant;
 use walkdir::WalkDir;
 
 use crate::case::TestCase;
@@ -40,17 +39,15 @@ pub struct Runner<E: EnvController> {
 }
 
 impl<E: EnvController> Runner<E> {
-    pub async fn try_new<P: AsRef<Path>>(config_path: P, env_controller: E) -> Result<Self> {
+    pub fn try_new<P: AsRef<Path>>(config_path: P, env_controller: E) -> Result<Self> {
         let mut config_file =
-            File::open(config_path.as_ref())
-                .await
-                .map_err(|e| SqlnessError::ReadPath {
-                    source: e,
-                    path: config_path.as_ref().to_path_buf(),
-                })?;
+            File::open(config_path.as_ref()).map_err(|e| SqlnessError::ReadPath {
+                source: e,
+                path: config_path.as_ref().to_path_buf(),
+            })?;
 
         let mut config_buf = vec![];
-        config_file.read_to_end(&mut config_buf).await?;
+        config_file.read_to_end(&mut config_buf)?;
         let config: Config =
             toml::from_slice(&config_buf).map_err(|e| SqlnessError::ParseToml {
                 source: e,
@@ -73,10 +70,10 @@ impl<E: EnvController> Runner<E> {
     }
 
     pub async fn run(&self) -> Result<()> {
-        let environments = self.collect_env().await?;
+        let environments = self.collect_env()?;
         let mut errors = Vec::new();
         for env in environments {
-            let env_config = self.read_env_config(&env).await;
+            let env_config = self.read_env_config(&env);
             let config_path = env_config.as_path();
             let config_path = if config_path.exists() {
                 Some(config_path)
@@ -106,7 +103,7 @@ impl<E: EnvController> Runner<E> {
         Ok(())
     }
 
-    async fn read_env_config(&self, env: &str) -> PathBuf {
+    fn read_env_config(&self, env: &str) -> PathBuf {
         let mut path_buf = std::path::PathBuf::new();
         path_buf.push(&self.config.case_dir);
         path_buf.push(env);
@@ -115,12 +112,12 @@ impl<E: EnvController> Runner<E> {
         path_buf
     }
 
-    async fn collect_env(&self) -> Result<Vec<String>> {
-        let mut dirs = read_dir(&self.config.case_dir).await?;
+    fn collect_env(&self) -> Result<Vec<String>> {
         let mut result = vec![];
 
-        while let Some(dir) = dirs.next_entry().await? {
-            if dir.file_type().await?.is_dir() {
+        for dir in read_dir(&self.config.case_dir)? {
+            let dir = dir?;
+            if dir.file_type()?.is_dir() {
                 let file_name = dir.file_name().to_str().unwrap().to_string();
                 result.push(file_name);
             }
@@ -180,19 +177,17 @@ impl<E: EnvController> Runner<E> {
     async fn run_single_case(&self, db: &E::DB, path: &Path) -> Result<bool> {
         let case_path = path.with_extension(&self.config.test_case_extension);
         let mut case =
-            TestCase::from_file(&case_path, &self.config, self.interceptor_factories.clone())
-                .await?;
+            TestCase::from_file(&case_path, &self.config, self.interceptor_factories.clone())?;
         let result_path = path.with_extension(&self.config.result_extension);
         let mut result_file = OpenOptions::new()
             .create(true)
             .write(true)
             .read(true)
-            .open(&result_path)
-            .await?;
+            .open(&result_path)?;
 
         // Read old result out for compare later
         let mut old_result = String::new();
-        result_file.read_to_string(&mut old_result).await?;
+        result_file.read_to_string(&mut old_result)?;
 
         // Execute testcase
         let mut new_result = Cursor::new(Vec::new());
@@ -201,9 +196,9 @@ impl<E: EnvController> Runner<E> {
         let elapsed = timer.elapsed();
 
         // Truncate and write new result back
-        result_file.set_len(0).await?;
-        result_file.seek(SeekFrom::Start(0)).await?;
-        result_file.write_all(new_result.get_ref()).await?;
+        result_file.set_len(0)?;
+        result_file.rewind()?;
+        result_file.write_all(new_result.get_ref())?;
 
         // Compare old and new result
         let new_result = String::from_utf8(new_result.into_inner()).expect("not utf8 string");
