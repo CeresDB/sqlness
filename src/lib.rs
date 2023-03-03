@@ -57,14 +57,14 @@
 mod case;
 mod config;
 mod database;
-mod database_impl;
+pub mod database_impl;
 mod environment;
 mod error;
 mod interceptor;
 mod runner;
 
 pub use case::QueryContext;
-pub use config::{Config, ConfigBuilder};
+pub use config::{Config, ConfigBuilder, DatabaseConfig, DatabaseConfigBuilder};
 pub use database::Database;
 pub use environment::EnvController;
 pub use error::SqlnessError;
