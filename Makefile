@@ -26,3 +26,6 @@ basic-example:
 
 bad-example:
 	cd $(DIR); cargo run --example bad
+
+cli-test:
+	cd $(DIR)/cli;  cargo run -- -c tests -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public

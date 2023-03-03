@@ -1,3 +1,5 @@
+// Copyright 2023 CeresDB Project Authors. Licensed under Apache-2.0.
+
 use std::path::Path;
 
 use async_trait::async_trait;
@@ -10,6 +12,7 @@ use sqlness::{
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
+/// A cli to run sqlness tests.
 struct Args {
     /// Directory of test cases
     #[clap(short, long, required(true))]
@@ -32,8 +35,12 @@ struct Args {
     password: Option<String>,
 
     /// DB name of database to test against
-    #[clap(short, long, default_value = "public")]
+    #[clap(short, long)]
     db: Option<String>,
+
+    /// Which DBMS to test against, only mysql is supported now
+    #[clap(short, long, default_value("mysql"))]
+    r#type: String,
 }
 
 struct CliController {

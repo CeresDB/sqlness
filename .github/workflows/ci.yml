@@ -103,4 +103,4 @@ jobs:
           root-password: 1a2b3c
       - name: Run Tests
         run: |
-          cargo run -- -c tests -i 127.0.0.1 -p 3306 -u root -P 1a2b3c
+          make cli-test
