@@ -103,4 +103,5 @@ jobs:
           root-password: 1a2b3c
       - name: Run Tests
         run: |
+          mysql -uroot -p1a2b3c -h127.0.0.1 -e 'create database if not exists public;'
           make cli-test
