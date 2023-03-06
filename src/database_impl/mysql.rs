@@ -10,59 +10,21 @@ use std::{
 use async_trait::async_trait;
 use mysql::{prelude::Queryable, Conn, OptsBuilder, Row};
 
-use crate::{config::DatabaseConnConfig, database::DatabaseBuilder, Database, QueryContext};
+use crate::{Database, DatabaseConfig, QueryContext};
 
-#[derive(Default)]
-pub struct MysqlBuilder;
-
-/// How to test:
-/// ```rust, ignore, no_run
-///  fn test_db() {
-///      let config = DatabaseConnConfig {
-///          ip_or_host: "localhost".to_string(),
-///          tcp_port: 3306,
-///          user: "root".to_string(),
-///          pass: Some("123456".to_string()),
-///          db_name: "hello".to_string(),
-///      };
-
-///      let opts = OptsBuilder::new()
-///          .ip_or_hostname(Some(config.ip_or_host.clone()))
-///          .tcp_port(config.tcp_port)
-///          .user(Some(config.user.clone()))
-///          .pass(config.pass.clone())
-///          .db_name(Some(config.db_name.clone()));
-///      let conn = Conn::new(opts).unwrap();
-///      let db = MysqlDatabase {
-///          conn: Arc::new(Mutex::new(conn)),
-///      };
-///      let query = "select * from test;";
-///      let future = MysqlDatabase::execute(query, Arc::clone(&db.conn));
-///      let result = tokio_test::block_on(future);
-///      println!("{}", result);
-///  }
-/// ```
 #[derive(Debug)]
 pub struct MysqlDatabase {
     conn: Arc<Mutex<Conn>>,
 }
 
-struct MysqlFormatter {
-    pub rows: Vec<Row>,
-}
-
-#[async_trait]
-impl DatabaseBuilder for MysqlBuilder {
-    type DB = MysqlDatabase;
-    type Err = mysql::Error;
-
-    async fn build(&self, config: DatabaseConnConfig) -> Result<Self::DB, Self::Err> {
+impl MysqlDatabase {
+    pub fn try_new(config: DatabaseConfig) -> Result<MysqlDatabase, mysql::Error> {
         let opts = OptsBuilder::new()
             .ip_or_hostname(Some(config.ip_or_host.clone()))
             .tcp_port(config.tcp_port)
-            .user(Some(config.user.clone()))
+            .user(config.user.clone())
             .pass(config.pass.clone())
-            .db_name(Some(config.db_name));
+            .db_name(config.db_name);
 
         let conn = Conn::new(opts)?;
         Ok(MysqlDatabase {
@@ -108,6 +70,10 @@ impl MysqlDatabase {
             Err(e) => format!("Failed to execute query, err: {:?}", e),
         })
     }
+}
+
+struct MysqlFormatter {
+    pub rows: Vec<Row>,
 }
 
 impl Display for MysqlFormatter {

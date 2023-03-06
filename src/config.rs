@@ -71,11 +71,11 @@ impl Config {
 }
 
 /// Config for DatabaseBuilder
-#[derive(Debug)]
-pub struct DatabaseConnConfig {
+#[derive(Debug, Builder, Clone)]
+pub struct DatabaseConfig {
     pub ip_or_host: String,
     pub tcp_port: u16,
-    pub user: String,
+    pub user: Option<String>,
     pub pass: Option<String>,
-    pub db_name: String,
+    pub db_name: Option<String>,
 }

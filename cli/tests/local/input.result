@@ -1,0 +1,29 @@
+DROP TABLE IF EXISTS animals;
+
+affected_rows: 0
+
+CREATE TABLE animals (
+     id MEDIUMINT NOT NULL AUTO_INCREMENT,
+     name CHAR(30) NOT NULL,
+     PRIMARY KEY (id)
+);
+
+affected_rows: 0
+
+INSERT INTO animals (name) VALUES
+    ('dog'),('cat'),('penguin'),
+    ('lax'),('whale'),('ostrich');
+
+affected_rows: 6
+
+SELECT * FROM animals;
+
+id,name,
+Some("1"),Some("dog"),
+Some("2"),Some("cat"),
+Some("3"),Some("penguin"),
+Some("4"),Some("lax"),
+Some("5"),Some("whale"),
+Some("6"),Some("ostrich"),
+
+

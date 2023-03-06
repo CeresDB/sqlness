@@ -22,8 +22,7 @@ env:
   RUST_BACKTRACE: "1"
 
 jobs:
-  linux-ci:
-    name: linux-ci
+  sqlness:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
@@ -42,10 +41,9 @@ jobs:
           path: |
             ~/.cargo
             ./target
-          key: debug-${{ runner.os }}-${{ hashFiles('rust-toolchain') }}-${{ hashFiles('Cargo.toml') }}
+          key: sqlness-${{ runner.os }}-${{ hashFiles('Cargo.toml') }}
           restore-keys: |
-            debug-${{ runner.os }}-${{ hashFiles('rust-toolchain') }}-
-            debug-${{ runner.os }}-
+            sqlness-${{ runner.os }}-
       - name: Install cargo-sort
         run: |
           cargo install cargo-sort
@@ -76,3 +74,34 @@ jobs:
           else
             echo "Expected, lock file is deleted."
           fi
+
+  sqlness-cli:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        rust: [stable]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: |
+          rustup set auto-self-update disable
+          rustup toolchain install ${{ matrix.rust }} --profile minimal
+      - name: Cache Rust Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo
+            ./cli/target
+          key: cli-${{ runner.os }}-${{ hashFiles('cli/Cargo.toml') }}
+          restore-keys: |
+            cli-${{ runner.os }}-
+      - uses: shogo82148/actions-setup-mysql@v1
+        with:
+          mysql-version: '8.0'
+          root-password: 1a2b3c
+      - name: Run Tests
+        run: |
+          mysql -uroot -p1a2b3c -h127.0.0.1 -e 'create database if not exists public;'
+          make cli-test
