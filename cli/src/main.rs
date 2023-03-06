@@ -38,9 +38,16 @@ struct Args {
     #[clap(short, long)]
     db: Option<String>,
 
-    /// Which DBMS to test against, only mysql is supported now
-    #[clap(short, long, default_value("mysql"))]
-    r#type: String,
+    /// Which DBMS to test against
+    #[clap(short, long)]
+    #[arg(value_enum, default_value_t)]
+    r#type: DBType,
+}
+
+#[derive(clap::ValueEnum, Clone, Debug, Default)]
+enum DBType {
+    #[default]
+    Mysql,
 }
 
 struct CliController {
