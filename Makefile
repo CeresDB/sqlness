@@ -22,10 +22,10 @@ clippy:
 	cd $(DIR); cargo clippy --all-targets --all-features --workspace -- -D warnings
 
 basic-example:
-	cd $(DIR); cargo run --example basic
+	cd $(DIR)/sqlness; cargo run --example basic
 
 bad-example:
-	cd $(DIR); cargo run --example bad
+	cd $(DIR)/sqlness; cargo run --example bad
 
 cli-test:
-	cd $(DIR)/cli;  cargo run -- -c tests -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public
+	cd $(DIR)/sqlness-cli;  cargo run -- -c tests -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public
