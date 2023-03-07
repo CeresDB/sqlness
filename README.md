@@ -10,9 +10,19 @@
 
 An ergonomic, opinionated framework for SQL integration test.
 
-# Example
+# Use as library
 
-See [basic.rs](examples/basic.rs) to learn how to setup a basic test. This is the directory structure of examples
+First add sqlness to your project:
+
+```bash
+cargo add sqlness
+```
+
+Then implement `Database` and `EnvController` trait to setup your tests.
+
+Users can refer [basic.rs](sqlness/examples/basic.rs) for a complete example.
+
+This is the directory structure of examples
 
 ```
 $ tree examples/
@@ -56,6 +66,34 @@ Environment simple run finished, cost:1ms
 Stop, env:simple.
 MyDB stopped.
 ```
+
+# Use as CLI
+If the tested database supports common wire protocol(such as mysql), users can choose to use `sqlness-cli` to run integration tests without writing any code.
+```bash
+$ cargo install sqlness-cli
+
+$ sqlness-cli -h
+A cli to run sqlness tests
+
+Usage: sqlness-cli [OPTIONS] --case-dir <CASE_DIR> --ip <IP> --port <PORT>
+
+Options:
+  -c, --case-dir <CASE_DIR>  Directory of test cases
+  -i, --ip <IP>              IP of database to test against
+  -p, --port <PORT>          Port of database to test against
+  -u, --user <USER>          User of database to test against
+  -P, --password <PASSWORD>  Password of database to test against
+  -d, --db <DB>              DB name of database to test against
+  -t, --type <TYPE>          Which DBMS to test against [default: mysql] [possible values: mysql]
+  -h, --help                 Print help
+  -V, --version              Print version
+```
+
+One example used in our CI is
+```bash
+sqlness-cli -c tests -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public
+```
+It will test against a MySQL server listening on `127.0.0.1:3306`
 
 # Who is using
 

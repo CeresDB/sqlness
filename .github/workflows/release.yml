@@ -22,7 +22,13 @@ jobs:
           override: true
 
       - name: Publish sqlness
-        run: cargo publish
+        run: cargo publish || true  # Ignore error
         working-directory: sqlness
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Publish sqlness-cli
+        run: cargo publish
+        working-directory: sqlness-cli
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
