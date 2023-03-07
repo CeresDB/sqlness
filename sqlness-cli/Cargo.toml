@@ -1,0 +1,15 @@
+[package]
+name = "sqlness-cli"
+version = { workspace = true }
+edition = { workspace = true }
+homepage = { workspace = true }
+keywords = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+description = "Sqlness command line tool"
+
+[dependencies]
+async-trait = "0.1.64"
+clap = { version = "4.1.8", features = [ "derive" ] }
+futures = "0.3.26"
+sqlness = { path = "../sqlness", features = [ "mysql" ] }
