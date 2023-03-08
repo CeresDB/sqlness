@@ -1,12 +1,13 @@
 [package]
 name = "sqlness-cli"
+description = "Sqlness command line tool"
 version = { workspace = true }
 edition = { workspace = true }
 homepage = { workspace = true }
 keywords = { workspace = true }
 license = { workspace = true }
 repository = { workspace = true }
-description = "Sqlness command line tool"
+readme = { workspace = true }
 
 [dependencies]
 async-trait = "0.1.64"

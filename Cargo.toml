@@ -12,3 +12,4 @@ repository = "https://github.com/CeresDB/sqlness"
 homepage = "https://github.com/CeresDB/sqlness"
 license = "Apache-2.0"
 keywords = ["sql", "database", "cli"]
+readme = "README.md"
