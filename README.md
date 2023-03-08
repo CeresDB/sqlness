@@ -68,7 +68,7 @@ MyDB stopped.
 ```
 
 # Use as CLI
-If the tested database supports common wire protocol(such as mysql), users can choose to use `sqlness-cli` to run integration tests without writing any code.
+If the tested database supports common wire protocol(such as MySQL), users can choose to use `sqlness-cli` to run integration tests without writing any code.
 ```bash
 $ cargo install sqlness-cli
 
