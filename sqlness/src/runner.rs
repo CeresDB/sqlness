@@ -9,6 +9,7 @@ use std::time::Instant;
 
 use prettydiff::basic::{DiffOp, SliceChangeset};
 use prettydiff::diff_lines;
+use regex::Regex;
 use walkdir::WalkDir;
 
 use crate::case::TestCase;
@@ -221,6 +222,7 @@ impl<E: EnvController> Runner<E> {
         let mut root = PathBuf::from_str(&self.config.case_dir).unwrap();
         root.push(env);
 
+        let filter = Regex::new(&self.config.test_filter)?;
         let test_case_extension = self.config.test_case_extension.as_str();
         let mut cases: Vec<_> = WalkDir::new(&root)
             .follow_links(self.config.follow_links)
@@ -236,11 +238,13 @@ impl<E: EnvController> Runner<E> {
             })
             .map(|path| path.with_extension(""))
             .filter(|path| {
-                path.file_name()
+                let filename = path
+                    .file_name()
                     .unwrap_or_default()
                     .to_str()
-                    .unwrap_or_default()
-                    .contains(&self.config.test_filter)
+                    .unwrap_or_default();
+                let filename_with_env = format!("{env}:{filename}");
+                filter.is_match(&filename_with_env)
             })
             .collect();
 
