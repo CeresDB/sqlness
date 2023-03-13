@@ -26,6 +26,9 @@ pub enum SqlnessError {
 
     #[error("Run failed. {count} cases can't pass")]
     RunFailed { count: usize },
+
+    #[error("Invalid regexp, source error: {0}")]
+    Regex(#[from] regex::Error),
 }
 
 pub(crate) type Result<T> = std::result::Result<T, SqlnessError>;

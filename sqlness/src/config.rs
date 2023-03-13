@@ -29,13 +29,14 @@ pub struct Config {
     #[builder(default = "true")]
     #[serde(default = "Config::default_fail_fast")]
     pub fail_fast: bool,
-    /// If specified, only run cases containing this string in their names.
+    /// Test only matched testcases, default `.*`
+    /// Env is prepended before filename, eg `{env}:{filename}`
     #[builder(default = "Config::default_test_filter()")]
     #[serde(default = "Config::default_test_filter")]
     pub test_filter: String,
     /// Whether follow symbolic links when searching test case files.
-    /// Defaults to "false" (not follow symbolic links).
-    #[builder(default = "false")]
+    /// Defaults to "true" (follow symbolic links).
+    #[builder(default = "true")]
     #[serde(default = "Config::default_follow_links")]
     pub follow_links: bool,
 }
@@ -62,11 +63,11 @@ impl Config {
     }
 
     fn default_test_filter() -> String {
-        "".to_string()
+        ".*".to_string()
     }
 
     fn default_follow_links() -> bool {
-        false
+        true
     }
 }
 
