@@ -73,7 +73,12 @@ impl<E: EnvController> Runner<E> {
     pub async fn run(&self) -> Result<()> {
         let environments = self.collect_env()?;
         let mut errors = Vec::new();
+        let filter = Regex::new(&self.config.test_filter)?;
         for env in environments {
+            if !filter.is_match(&env) {
+                println!("Environment({env}) is skipped!");
+                continue;
+            }
             let env_config = self.read_env_config(&env);
             let config_path = env_config.as_path();
             let config_path = if config_path.exists() {
