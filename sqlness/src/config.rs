@@ -34,6 +34,10 @@ pub struct Config {
     #[builder(default = "Config::default_test_filter()")]
     #[serde(default = "Config::default_test_filter")]
     pub test_filter: String,
+    /// Test only matched env, default `.*`
+    #[builder(default = "Config::default_env_filter()")]
+    #[serde(default = "Config::default_env_filter")]
+    pub env_filter: String,
     /// Whether follow symbolic links when searching test case files.
     /// Defaults to "true" (follow symbolic links).
     #[builder(default = "true")]
@@ -63,6 +67,10 @@ impl Config {
     }
 
     fn default_test_filter() -> String {
+        ".*".to_string()
+    }
+
+    fn default_env_filter() -> String {
         ".*".to_string()
     }
 
