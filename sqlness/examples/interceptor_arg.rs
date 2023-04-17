@@ -53,9 +53,7 @@ async fn main() {
         .interceptor_factories(builtin_interceptors())
         .build()
         .unwrap();
-    let runner = Runner::try_new(config, env)
-        .await
-        .expect("Create Runner failed");
+    let runner = Runner::new(config, env);
 
     println!("Run testcase...");
 

@@ -39,11 +39,11 @@ pub struct Runner<E: EnvController> {
 }
 
 impl<E: EnvController> Runner<E> {
-    pub async fn try_new(config: Config, env_controller: E) -> Result<Self> {
-        Ok(Self {
+    pub fn new(config: Config, env_controller: E) -> Self {
+        Self {
             config,
             env_controller,
-        })
+        }
     }
 
     pub async fn run(&self) -> Result<()> {

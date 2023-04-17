@@ -84,7 +84,7 @@ fn main() {
         .expect("build config");
 
     block_on(async {
-        let runner = Runner::try_new(config, ctrl).await.expect("build runner");
+        let runner = Runner::new(config, ctrl);
 
         runner.run().await.expect("run testcase")
     });
