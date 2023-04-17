@@ -1,6 +1,6 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
-use std::fs::{read_dir, File, OpenOptions};
+use std::fs::{read_dir, OpenOptions};
 use std::io::{Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -36,37 +36,13 @@ use crate::{config::Config, environment::EnvController};
 pub struct Runner<E: EnvController> {
     config: Config,
     env_controller: E,
-    interceptor_factories: Vec<InterceptorFactoryRef>,
 }
 
 impl<E: EnvController> Runner<E> {
-    pub fn try_new<P: AsRef<Path>>(config_path: P, env_controller: E) -> Result<Self> {
-        let mut config_file =
-            File::open(config_path.as_ref()).map_err(|e| SqlnessError::ReadPath {
-                source: e,
-                path: config_path.as_ref().to_path_buf(),
-            })?;
-
-        let mut config_buf = vec![];
-        config_file.read_to_end(&mut config_buf)?;
-        let config: Config =
-            toml::from_slice(&config_buf).map_err(|e| SqlnessError::ParseToml {
-                source: e,
-                file: config_path.as_ref().to_path_buf(),
-            })?;
-
+    pub async fn try_new(config: Config, env_controller: E) -> Result<Self> {
         Ok(Self {
             config,
             env_controller,
-            interceptor_factories: Self::default_interceptor(),
-        })
-    }
-
-    pub async fn new_with_config(config: Config, env_controller: E) -> Result<Self> {
-        Ok(Self {
-            config,
-            env_controller,
-            interceptor_factories: Self::default_interceptor(),
         })
     }
 
@@ -182,8 +158,7 @@ impl<E: EnvController> Runner<E> {
     /// Return true when this case pass, otherwise false.
     async fn run_single_case(&self, db: &E::DB, path: &Path) -> Result<bool> {
         let case_path = path.with_extension(&self.config.test_case_extension);
-        let mut case =
-            TestCase::from_file(&case_path, &self.config, self.interceptor_factories.clone())?;
+        let mut case = TestCase::from_file(&case_path, &self.config)?;
         let result_path = path.with_extension(&self.config.result_extension);
         let mut result_file = OpenOptions::new()
             .create(true)
@@ -274,8 +249,9 @@ impl<E: EnvController> Runner<E> {
 
         None
     }
+}
 
-    fn default_interceptor() -> Vec<InterceptorFactoryRef> {
-        vec![Arc::new(ArgInterceptorFactory {})]
-    }
+/// Interceptors builtin sqlness
+pub fn builtin_interceptors() -> Vec<InterceptorFactoryRef> {
+    vec![Arc::new(ArgInterceptorFactory {})]
 }

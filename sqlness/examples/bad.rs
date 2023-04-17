@@ -54,7 +54,7 @@ async fn main() {
         .case_dir("examples/bad-case".to_string())
         .build()
         .unwrap();
-    let runner = Runner::new_with_config(config, env)
+    let runner = Runner::try_new(config, env)
         .await
         .expect("Create Runner failed");
 
