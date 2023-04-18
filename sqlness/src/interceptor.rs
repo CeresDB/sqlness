@@ -4,7 +4,7 @@
 
 use std::sync::Arc;
 
-use crate::case::QueryContext;
+use crate::{case::QueryContext, interceptor::arg::ArgInterceptorFactory};
 
 pub mod arg;
 
@@ -22,4 +22,9 @@ pub type InterceptorFactoryRef = Arc<dyn InterceptorFactory>;
 
 pub trait InterceptorFactory {
     fn try_new(&self, interceptor: &str) -> Option<InterceptorRef>;
+}
+
+/// Interceptors builtin sqlness
+pub fn builtin_interceptors() -> Vec<InterceptorFactoryRef> {
+    vec![Arc::new(ArgInterceptorFactory {})]
 }

@@ -50,7 +50,6 @@ async fn main() {
     let env = MyController;
     let config = ConfigBuilder::default()
         .case_dir("examples/interceptor-arg".to_string())
-        .interceptor_factories(builtin_interceptors())
         .build()
         .unwrap();
     let runner = Runner::new(config, env);

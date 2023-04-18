@@ -4,7 +4,6 @@ use std::fs::{read_dir, OpenOptions};
 use std::io::{Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use std::sync::Arc;
 use std::time::Instant;
 
 use prettydiff::basic::{DiffOp, SliceChangeset};
@@ -14,8 +13,6 @@ use walkdir::WalkDir;
 
 use crate::case::TestCase;
 use crate::error::{Result, SqlnessError};
-use crate::interceptor::arg::ArgInterceptorFactory;
-use crate::interceptor::InterceptorFactoryRef;
 use crate::{config::Config, environment::EnvController};
 
 /// The entrypoint of this crate.
@@ -249,9 +246,4 @@ impl<E: EnvController> Runner<E> {
 
         None
     }
-}
-
-/// Interceptors builtin sqlness
-pub fn builtin_interceptors() -> Vec<InterceptorFactoryRef> {
-    vec![Arc::new(ArgInterceptorFactory {})]
 }
