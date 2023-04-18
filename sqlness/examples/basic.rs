@@ -49,9 +49,7 @@ async fn main() {
         .case_dir("examples/basic-case".to_string())
         .build()
         .unwrap();
-    let runner = Runner::new_with_config(config, env)
-        .await
-        .expect("Create Runner failed");
+    let runner = Runner::new(config, env);
 
     println!("Run testcase...");
 

@@ -23,18 +23,14 @@ pub(crate) struct TestCase {
 }
 
 impl TestCase {
-    pub(crate) fn from_file<P: AsRef<Path>>(
-        path: P,
-        cfg: &Config,
-        interceptor_factories: Vec<InterceptorFactoryRef>,
-    ) -> Result<Self> {
+    pub(crate) fn from_file<P: AsRef<Path>>(path: P, cfg: &Config) -> Result<Self> {
         let file = File::open(path.as_ref()).map_err(|e| SqlnessError::ReadPath {
             source: e,
             path: path.as_ref().to_path_buf(),
         })?;
 
         let mut queries = vec![];
-        let mut query = Query::with_interceptor_factories(interceptor_factories.clone());
+        let mut query = Query::with_interceptor_factories(cfg.interceptor_factories.clone());
 
         let reader = BufReader::new(file);
         for line in reader.lines() {
@@ -55,7 +51,7 @@ impl TestCase {
             // SQL statement ends with ';'
             if line.ends_with(';') {
                 queries.push(query);
-                query = Query::with_interceptor_factories(interceptor_factories.clone());
+                query = Query::with_interceptor_factories(cfg.interceptor_factories.clone());
             } else {
                 query.append_query_line("\n");
             }
