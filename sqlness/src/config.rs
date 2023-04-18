@@ -2,7 +2,7 @@
 
 use derive_builder::Builder;
 
-use crate::interceptor::InterceptorFactoryRef;
+use crate::interceptor::{builtin_interceptors, InterceptorFactoryRef};
 
 /// Configurations of [`Runner`].
 ///
@@ -76,7 +76,7 @@ impl Config {
     }
 
     fn default_interceptors() -> Vec<InterceptorFactoryRef> {
-        vec![]
+        builtin_interceptors()
     }
 }
 

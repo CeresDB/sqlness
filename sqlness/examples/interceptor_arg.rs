@@ -5,7 +5,7 @@
 use std::{fmt::Display, path::Path};
 
 use async_trait::async_trait;
-use sqlness::{builtin_interceptors, ConfigBuilder, Database, EnvController, QueryContext, Runner};
+use sqlness::{ConfigBuilder, Database, EnvController, QueryContext, Runner};
 
 struct MyController;
 struct MyDB;
@@ -50,7 +50,6 @@ async fn main() {
     let env = MyController;
     let config = ConfigBuilder::default()
         .case_dir("examples/interceptor-arg".to_string())
-        .interceptor_factories(builtin_interceptors())
         .build()
         .unwrap();
     let runner = Runner::new(config, env);

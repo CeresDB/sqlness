@@ -60,7 +60,7 @@ mod database;
 pub mod database_impl;
 mod environment;
 mod error;
-mod interceptor;
+pub mod interceptor;
 mod runner;
 
 pub use case::QueryContext;
@@ -68,4 +68,5 @@ pub use config::{Config, ConfigBuilder, DatabaseConfig, DatabaseConfigBuilder};
 pub use database::Database;
 pub use environment::EnvController;
 pub use error::SqlnessError;
-pub use runner::{builtin_interceptors, Runner};
+pub use interceptor::builtin_interceptors;
+pub use runner::Runner;
