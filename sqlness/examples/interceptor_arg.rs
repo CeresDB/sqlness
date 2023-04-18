@@ -5,7 +5,7 @@
 use std::{fmt::Display, path::Path};
 
 use async_trait::async_trait;
-use sqlness::{builtin_interceptors, ConfigBuilder, Database, EnvController, QueryContext, Runner};
+use sqlness::{ConfigBuilder, Database, EnvController, QueryContext, Runner};
 
 struct MyController;
 struct MyDB;
