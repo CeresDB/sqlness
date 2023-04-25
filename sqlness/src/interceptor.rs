@@ -7,6 +7,7 @@ use std::sync::Arc;
 use crate::{case::QueryContext, interceptor::arg::ArgInterceptorFactory};
 
 pub mod arg;
+pub mod replace;
 
 pub type InterceptorRef = Box<dyn Interceptor>;
 
