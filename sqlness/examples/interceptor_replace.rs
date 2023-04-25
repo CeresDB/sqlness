@@ -13,7 +13,6 @@ struct MyDB;
 #[async_trait]
 impl Database for MyDB {
     async fn query(&self, _: QueryContext, query: String) -> Box<dyn Display> {
-        println!("query: {}", query);
         return Box::new(query);
     }
 }

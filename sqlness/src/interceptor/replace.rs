@@ -50,7 +50,6 @@ pub struct ReplaceInterceptorFactory;
 
 impl InterceptorFactory for ReplaceInterceptorFactory {
     fn try_new(&self, interceptor: &str) -> Option<InterceptorRef> {
-        println!("interceptor: *{}*", interceptor);
         if interceptor.starts_with(PREFIX) {
             let args = interceptor
                 .trim_start_matches(PREFIX)

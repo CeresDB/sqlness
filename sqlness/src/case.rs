@@ -130,9 +130,7 @@ impl Query {
             .await
             .to_string();
 
-        println!("before intercept: {}", result);
         self.after_execute_intercept(&mut result);
-        println!("result: {}", result);
         self.write_result(writer, result)?;
 
         Ok(())
