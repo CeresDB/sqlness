@@ -2,9 +2,7 @@
 
 use regex::Regex;
 
-use crate::interceptor::Interceptor;
-
-use super::{InterceptorFactory, InterceptorRef};
+use crate::interceptor::{Interceptor, InterceptorFactory, InterceptorRef};
 
 const PREFIX: &str = "REPLACE";
 
@@ -52,6 +50,7 @@ pub struct ReplaceInterceptorFactory;
 
 impl InterceptorFactory for ReplaceInterceptorFactory {
     fn try_new(&self, interceptor: &str) -> Option<InterceptorRef> {
+        println!("interceptor: *{}*", interceptor);
         if interceptor.starts_with(PREFIX) {
             let args = interceptor
                 .trim_start_matches(PREFIX)
@@ -59,6 +58,9 @@ impl InterceptorFactory for ReplaceInterceptorFactory {
                 .trim_end();
             let mut args = args.splitn(2, ' ');
             let pattern = args.next()?.to_string();
+            if pattern.is_empty() {
+                return None;
+            }
             let replacement = args.next().unwrap_or("").to_string();
             Some(Box::new(ReplaceInterceptor {
                 pattern,

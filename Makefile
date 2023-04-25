@@ -21,11 +21,19 @@ check-license:
 clippy:
 	cd $(DIR); cargo clippy --all-targets --all-features --workspace -- -D warnings
 
+cli-test:
+	cd $(DIR)/sqlness-cli;  cargo run -- -c tests -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public
+
+example: basic-example bad-example interceptor-arg-example interceptor-replace-example
+
 basic-example:
 	cd $(DIR)/sqlness; cargo run --example basic
 
 bad-example:
 	cd $(DIR)/sqlness; cargo run --example bad
 
-cli-test:
-	cd $(DIR)/sqlness-cli;  cargo run -- -c tests -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public
+interceptor-arg-example:
+	cd $(DIR)/sqlness; cargo run --example interceptor_arg
+
+interceptor-replace-example:
+	cd $(DIR)/sqlness; cargo run --example interceptor_replace

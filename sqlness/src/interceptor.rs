@@ -4,7 +4,10 @@
 
 use std::sync::Arc;
 
-use crate::{case::QueryContext, interceptor::arg::ArgInterceptorFactory};
+use crate::{
+    case::QueryContext,
+    interceptor::{arg::ArgInterceptorFactory, replace::ReplaceInterceptorFactory},
+};
 
 pub mod arg;
 pub mod replace;
@@ -27,5 +30,8 @@ pub trait InterceptorFactory {
 
 /// Interceptors builtin sqlness
 pub fn builtin_interceptors() -> Vec<InterceptorFactoryRef> {
-    vec![Arc::new(ArgInterceptorFactory {})]
+    vec![
+        Arc::new(ArgInterceptorFactory {}),
+        Arc::new(ReplaceInterceptorFactory {}),
+    ]
 }
