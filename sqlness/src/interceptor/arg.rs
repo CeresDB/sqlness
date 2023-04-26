@@ -1,8 +1,7 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
 use crate::case::QueryContext;
-
-use super::{Interceptor, InterceptorFactory, InterceptorRef};
+use crate::interceptor::{Interceptor, InterceptorFactory, InterceptorRef};
 
 const PREFIX: &str = "ARG";
 

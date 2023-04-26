@@ -131,7 +131,7 @@ impl Query {
             .to_string();
 
         self.after_execute_intercept(&mut result);
-        self.write_result(writer, result.to_string())?;
+        self.write_result(writer, result)?;
 
         Ok(())
     }
@@ -156,6 +156,8 @@ impl Query {
         self.query_lines
             .iter()
             .fold(String::new(), |query, str| query + " " + str)
+            .trim_start()
+            .to_string()
     }
 
     #[allow(clippy::unused_io_amount)]
