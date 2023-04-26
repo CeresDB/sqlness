@@ -24,7 +24,9 @@ clippy:
 cli-test:
 	cd $(DIR)/sqlness-cli;  cargo run -- -c tests -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public
 
-example: basic-example bad-example interceptor-arg-example interceptor-replace-example
+example: good-example bad-example
+
+good-example: basic-example interceptor-arg-example interceptor-replace-example
 
 basic-example:
 	cd $(DIR)/sqlness; cargo run --example basic

@@ -56,9 +56,9 @@ jobs:
       - name: Run Unit Tests
         run: |
           make test
-      - name: Run basic example
+      - name: Run good examples
         run: |
-          make basic-example
+          make good-example
       - name: Run bad example
         run: |
           if make bad-example; then

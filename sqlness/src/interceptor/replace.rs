@@ -55,6 +55,7 @@ impl InterceptorFactory for ReplaceInterceptorFactory {
                 .trim_start_matches(PREFIX)
                 .trim_start()
                 .trim_end();
+            // TODO(ruihang): support pattern with blanks
             let mut args = args.splitn(2, ' ');
             let pattern = args.next()?.to_string();
             if pattern.is_empty() {
