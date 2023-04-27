@@ -6,10 +6,13 @@ use std::sync::Arc;
 
 use crate::{
     case::QueryContext,
-    interceptor::{arg::ArgInterceptorFactory, replace::ReplaceInterceptorFactory},
+    interceptor::{
+        arg::ArgInterceptorFactory, env::EnvInterceptorFactory, replace::ReplaceInterceptorFactory,
+    },
 };
 
 pub mod arg;
+pub mod env;
 pub mod replace;
 
 pub type InterceptorRef = Box<dyn Interceptor>;
@@ -33,5 +36,6 @@ pub fn builtin_interceptors() -> Vec<InterceptorFactoryRef> {
     vec![
         Arc::new(ArgInterceptorFactory {}),
         Arc::new(ReplaceInterceptorFactory {}),
+        Arc::new(EnvInterceptorFactory {}),
     ]
 }
