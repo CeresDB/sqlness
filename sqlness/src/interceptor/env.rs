@@ -64,12 +64,12 @@ mod test {
 
     #[test]
     fn cut_env_string() {
-        let input = "ENV SECRET NONEXIST";
+        let input = "ENV SECRET NONEXISTENT";
         std::env::set_var("SECRET", "2333");
 
         let expected = [
             ("SECRET".to_string(), "2333".to_string()),
-            ("NONEXIST".to_string(), "".to_string()),
+            ("NONEXISTENT".to_string(), "".to_string()),
         ]
         .into_iter()
         .collect();

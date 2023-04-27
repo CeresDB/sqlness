@@ -42,7 +42,7 @@ impl EnvController for MyController {
 async fn main() {
     let env = MyController;
     let config = ConfigBuilder::default()
-        .case_dir("examples/interceptor-replace".to_string())
+        .case_dir("examples/echo".to_string())
         .build()
         .unwrap();
     let runner = Runner::new(config, env);

@@ -26,7 +26,7 @@ cli-test:
 
 example: good-example bad-example
 
-good-example: basic-example interceptor-arg-example interceptor-replace-example
+good-example: basic-example interceptor-arg-example echo-example
 
 basic-example:
 	cd $(DIR)/sqlness; cargo run --example basic
@@ -37,5 +37,5 @@ bad-example:
 interceptor-arg-example:
 	cd $(DIR)/sqlness; cargo run --example interceptor_arg
 
-interceptor-replace-example:
-	cd $(DIR)/sqlness; cargo run --example interceptor_replace
+echo-example:
+	cd $(DIR)/sqlness; SECRET=23333 cargo run --example echo
