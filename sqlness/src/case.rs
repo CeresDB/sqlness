@@ -155,7 +155,7 @@ impl Query {
     fn concat_query_lines(&self) -> String {
         self.query_lines
             .iter()
-            .fold(String::new(), |query, str| query + " " + str)
+            .fold(String::new(), |query, str| query + str)
             .trim_start()
             .to_string()
     }
