@@ -11,6 +11,7 @@ use crate::{
 
 pub mod arg;
 pub mod replace;
+pub mod sort_result;
 
 pub type InterceptorRef = Box<dyn Interceptor>;
 
