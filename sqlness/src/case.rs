@@ -35,14 +35,20 @@ impl TestCase {
         let reader = BufReader::new(file);
         for line in reader.lines() {
             let line = line?;
-            // intercept command start with INTERCEPTOR_PREFIX
-            if line.starts_with(&cfg.interceptor_prefix) {
-                query.push_interceptor(&cfg.interceptor_prefix, line);
+
+            // record comment
+            if line.starts_with(COMMENT_PREFIX) {
+                query.push_comment(line.clone());
+
+                // intercept command start with INTERCEPTOR_PREFIX
+                if line.starts_with(&cfg.interceptor_prefix) {
+                    query.push_interceptor(&cfg.interceptor_prefix, line);
+                }
                 continue;
             }
 
-            // ignore comment and empty line
-            if line.starts_with(COMMENT_PREFIX) || line.is_empty() {
+            // ignore empty line
+            if line.is_empty() {
                 continue;
             }
 
@@ -89,8 +95,8 @@ pub struct QueryContext {
 
 #[derive(Default)]
 struct Query {
+    comment_lines: Vec<String>,
     query_lines: Vec<String>,
-    interceptor_lines: Vec<String>,
     interceptor_factories: Vec<InterceptorFactoryRef>,
     interceptors: Vec<InterceptorRef>,
 }
@@ -112,7 +118,10 @@ impl Query {
                 self.interceptors.push(interceptor);
             }
         }
-        self.interceptor_lines.push(interceptor_line);
+    }
+
+    fn push_comment(&mut self, comment_line: String) {
+        self.comment_lines.push(comment_line);
     }
 
     fn append_query_line(&mut self, line: &str) {
@@ -165,8 +174,8 @@ impl Query {
     where
         W: Write,
     {
-        for interceptor in &self.interceptor_lines {
-            writer.write_all(interceptor.as_bytes())?;
+        for comment in &self.comment_lines {
+            writer.write_all(comment.as_bytes())?;
             writer.write("\n".as_bytes())?;
         }
         for line in &self.query_lines {
