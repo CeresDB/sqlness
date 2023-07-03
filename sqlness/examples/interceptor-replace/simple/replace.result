@@ -13,6 +13,7 @@ SELECT 0;
 
 SELECT 1;
 
+-- example of capture group replacement
 -- SQLNESS REPLACE (?P<y>\d{4})-(?P<m>\d{2})-(?P<d>\d{2}) $m/$d/$y
 2012-03-14, 2013-01-01 and 2014-07-05;
 

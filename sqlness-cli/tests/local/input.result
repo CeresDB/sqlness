@@ -1,3 +1,4 @@
+-- https://dev.mysql.com/doc/refman/8.0/en/example-auto-increment.html
 DROP TABLE IF EXISTS animals;
 
 affected_rows: 0
