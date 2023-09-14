@@ -6,8 +6,8 @@ use async_trait::async_trait;
 use clap::Parser;
 use futures::executor::block_on;
 use sqlness::{
-    database_impl::mysql::MysqlDatabase, ConfigBuilder, DatabaseConfig, DatabaseConfigBuilder,
-    EnvController, Runner,
+    database_impl::{mysql::MysqlDatabase, postgresql::PostgresqlDatabase},
+    ConfigBuilder, DatabaseConfig, DatabaseConfigBuilder, EnvController, Runner,
 };
 
 #[derive(Parser, Debug)]
@@ -48,6 +48,7 @@ struct Args {
 enum DBType {
     #[default]
     Mysql,
+    Postgresql,
 }
 
 struct CliController {
@@ -60,6 +61,21 @@ impl EnvController for CliController {
 
     async fn start(&self, _env: &str, _config: Option<&Path>) -> Self::DB {
         MysqlDatabase::try_new(self.db_config.clone()).expect("build db")
+    }
+
+    async fn stop(&self, _env: &str, _db: Self::DB) {}
+}
+
+struct PostgresController {
+    db_config: DatabaseConfig,
+}
+
+#[async_trait]
+impl EnvController for PostgresController {
+    type DB = PostgresqlDatabase;
+
+    async fn start(&self, _env: &str, _config: Option<&Path>) -> Self::DB {
+        PostgresqlDatabase::new(&self.db_config).expect("build db")
     }
 
     async fn stop(&self, _env: &str, _db: Self::DB) {}

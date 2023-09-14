@@ -18,6 +18,7 @@ regex = "1.7.1"
 thiserror = "1.0"
 toml = "0.5"
 walkdir = "2.3"
+postgres = { version = "0.19.7" , optional = true }
 
 [dev-dependencies]
 tokio = { version = "1.23", features = ["full"] }
