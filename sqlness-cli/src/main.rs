@@ -1,11 +1,6 @@
 // Copyright 2023 CeresDB Project Authors. Licensed under Apache-2.0.
 
-use std::{
-    error::Error,
-    fmt::Display,
-    path::Path,
-    sync::{Arc, Mutex},
-};
+use std::{error::Error, fmt::Display, path::Path, sync::Arc};
 
 use async_trait::async_trait;
 use clap::Parser;
@@ -64,9 +59,7 @@ struct DBProxy {
 #[async_trait]
 impl Database for DBProxy {
     async fn query(&self, context: QueryContext, query: String) -> Box<dyn Display> {
-        let db = &self.database;
-        let result = db.query(context, query).await;
-        result
+        self.database.query(context, query).await
     }
 }
 impl DBProxy {
