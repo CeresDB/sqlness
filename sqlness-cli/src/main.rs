@@ -1,13 +1,19 @@
 // Copyright 2023 CeresDB Project Authors. Licensed under Apache-2.0.
 
-use std::path::Path;
+use std::{
+    error::Error,
+    fmt::Display,
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
 use async_trait::async_trait;
 use clap::Parser;
 use futures::executor::block_on;
 use sqlness::{
     database_impl::{mysql::MysqlDatabase, postgresql::PostgresqlDatabase},
-    ConfigBuilder, DatabaseConfig, DatabaseConfigBuilder, EnvController, Runner,
+    ConfigBuilder, Database, DatabaseConfig, DatabaseConfigBuilder, EnvController, QueryContext,
+    Runner,
 };
 
 #[derive(Parser, Debug)]
@@ -44,38 +50,56 @@ struct Args {
     r#type: DBType,
 }
 
-#[derive(clap::ValueEnum, Clone, Debug, Default)]
+#[derive(clap::ValueEnum, Clone, Debug, Default, Copy)]
 enum DBType {
     #[default]
     Mysql,
     Postgresql,
 }
 
+struct DBProxy {
+    database: Arc<dyn Database + Sync + Send>,
+}
+
+#[async_trait]
+impl Database for DBProxy {
+    async fn query(&self, context: QueryContext, query: String) -> Box<dyn Display> {
+        let db = &self.database;
+        let result = db.query(context, query).await;
+        result
+    }
+}
+impl DBProxy {
+    pub fn try_new(db_config: DatabaseConfig, db_type: DBType) -> Result<Self, Box<dyn Error>> {
+        let db = match db_type {
+            DBType::Mysql => {
+                Arc::new(MysqlDatabase::try_new(db_config).expect("build db")) as Arc<_>
+            }
+            DBType::Postgresql => {
+                Arc::new(PostgresqlDatabase::new(&db_config).expect("build db")) as Arc<_>
+            }
+        };
+        Ok(DBProxy { database: db })
+    }
+}
+
 struct CliController {
     db_config: DatabaseConfig,
+    db_type: DBType,
+}
+
+impl CliController {
+    fn new(db_config: DatabaseConfig, db_type: DBType) -> Self {
+        Self { db_config, db_type }
+    }
 }
 
 #[async_trait]
 impl EnvController for CliController {
-    type DB = MysqlDatabase;
+    type DB = DBProxy;
 
     async fn start(&self, _env: &str, _config: Option<&Path>) -> Self::DB {
-        MysqlDatabase::try_new(self.db_config.clone()).expect("build db")
-    }
-
-    async fn stop(&self, _env: &str, _db: Self::DB) {}
-}
-
-struct PostgresController {
-    db_config: DatabaseConfig,
-}
-
-#[async_trait]
-impl EnvController for PostgresController {
-    type DB = PostgresqlDatabase;
-
-    async fn start(&self, _env: &str, _config: Option<&Path>) -> Self::DB {
-        PostgresqlDatabase::new(&self.db_config).expect("build db")
+        DBProxy::try_new(self.db_config.clone(), self.db_type).expect("build db")
     }
 
     async fn stop(&self, _env: &str, _db: Self::DB) {}
@@ -93,15 +117,14 @@ fn main() {
         .build()
         .expect("build db config");
 
-    let ctrl = CliController { db_config };
     let config = ConfigBuilder::default()
         .case_dir(args.case_dir)
         .build()
         .expect("build config");
 
     block_on(async {
-        let runner = Runner::new(config, ctrl);
-
+        let cli = CliController::new(db_config, args.r#type);
+        let runner = Runner::new(config, cli);
         runner.run().await.expect("run testcase")
     });
 
