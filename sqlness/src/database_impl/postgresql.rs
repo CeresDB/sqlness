@@ -61,6 +61,10 @@ struct PostgresqlFormatter {
 
 impl Display for PostgresqlFormatter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.rows.is_empty() {
+            return f.write_fmt(format_args!("(Empty response)"));
+        }
+
         let top = &self.rows[0];
         let columns = top
             .columns()
@@ -74,10 +78,7 @@ impl Display for PostgresqlFormatter {
         f.write_str("\n")?;
 
         for row in &self.rows {
-            for column in &columns {
-                f.write_fmt(format_args!("{:?},", row.get::<&str, &str>(column)))?;
-            }
-            f.write_str("\n")?;
+            f.write_fmt(format_args!("{:?}\n", row))?;
         }
 
         Ok(())
