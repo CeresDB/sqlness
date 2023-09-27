@@ -1,6 +1,6 @@
 // Copyright 2023 CeresDB Project Authors. Licensed under Apache-2.0.
 
-use std::{error::Error, fmt::Display, path::Path, sync::Arc};
+use std::{error::Error, fmt::Display, path::Path};
 
 use async_trait::async_trait;
 use clap::Parser;
@@ -53,7 +53,7 @@ enum DBType {
 }
 
 struct DBProxy {
-    database: Arc<dyn Database + Sync + Send>,
+    database: Box<dyn Database + Sync + Send>,
 }
 
 #[async_trait]
@@ -62,14 +62,15 @@ impl Database for DBProxy {
         self.database.query(context, query).await
     }
 }
+
 impl DBProxy {
     pub fn try_new(db_config: DatabaseConfig, db_type: DBType) -> Result<Self, Box<dyn Error>> {
         let db = match db_type {
             DBType::Mysql => {
-                Arc::new(MysqlDatabase::try_new(db_config).expect("build db")) as Arc<_>
+                Box::new(MysqlDatabase::try_new(db_config).expect("build db")) as Box<_>
             }
             DBType::Postgresql => {
-                Arc::new(PostgresqlDatabase::new(&db_config).expect("build db")) as Arc<_>
+                Box::new(PostgresqlDatabase::new(&db_config).expect("build db")) as Box<_>
             }
         };
         Ok(DBProxy { database: db })
