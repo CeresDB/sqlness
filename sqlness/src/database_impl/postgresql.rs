@@ -9,7 +9,6 @@ use std::{
 
 use crate::{Database, DatabaseConfig, QueryContext};
 
-/// DatabaseBuilder for PostgreSQL
 pub struct PostgresqlDatabase {
     client: Arc<Mutex<Client>>,
 }
