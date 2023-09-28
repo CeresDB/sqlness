@@ -14,7 +14,7 @@ pub struct PostgresqlDatabase {
 }
 
 impl PostgresqlDatabase {
-    pub fn new(config: &DatabaseConfig) -> Result<Self, postgres::Error> {
+    pub fn try_new(config: &DatabaseConfig) -> Result<Self, postgres::Error> {
         let mut postgres_config = Config::new();
         postgres_config
             .port(config.tcp_port)
@@ -29,7 +29,6 @@ impl PostgresqlDatabase {
         if let Some(dbname) = &config.db_name {
             postgres_config.dbname(dbname);
         }
-
         let client = postgres_config.connect(NoTls)?;
         Ok(PostgresqlDatabase {
             client: Arc::new(Mutex::new(client)),

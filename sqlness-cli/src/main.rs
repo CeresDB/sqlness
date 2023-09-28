@@ -40,9 +40,9 @@ struct Args {
     db: Option<String>,
 
     /// Which DBMS to test against
-    #[clap(short, long)]
-    #[arg(value_enum, default_value_t)]
-    r#type: DBType,
+    #[clap(short('r'), long)]
+    #[arg(value_enum, default_value_t = DBType::Mysql)]
+    db_type: DBType,
 }
 
 #[derive(clap::ValueEnum, Clone, Debug, Default, Copy)]
@@ -70,7 +70,7 @@ impl DBProxy {
                 Box::new(MysqlDatabase::try_new(db_config).expect("build db")) as Box<_>
             }
             DBType::Postgresql => {
-                Box::new(PostgresqlDatabase::new(&db_config).expect("build db")) as Box<_>
+                Box::new(PostgresqlDatabase::try_new(&db_config).expect("build db")) as Box<_>
             }
         };
         Ok(DBProxy { database: db })
@@ -117,7 +117,7 @@ fn main() {
         .expect("build config");
 
     block_on(async {
-        let cli = CliController::new(db_config, args.r#type);
+        let cli = CliController::new(db_config, args.db_type);
         let runner = Runner::new(config, cli);
         runner.run().await.expect("run testcase")
     });

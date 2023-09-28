@@ -23,7 +23,7 @@ clippy:
 
 cli-test:
 	cd $(DIR)/sqlness-cli;  cargo run -- -c tests/mysql -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public
-	cd $(DIR)/sqlness-cli;  cargo run -- -c tests/postgresql -i localhost -p 5432 -u postgres -P postgres -d postgres
+	cd $(DIR)/sqlness-cli;  cargo run -- -c tests/postgresql -i localhost -p 5432 -u postgres -P postgres -d postgres -r postgresql
 
 example: good-example bad-example
 
