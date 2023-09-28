@@ -22,7 +22,8 @@ clippy:
 	cd $(DIR); cargo clippy --all-targets --all-features --workspace -- -D warnings
 
 cli-test:
-	cd $(DIR)/sqlness-cli;  cargo run -- -c tests -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public
+	cd $(DIR)/sqlness-cli;  cargo run -- -t mysql -c tests/mysql -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public
+	cd $(DIR)/sqlness-cli;  cargo run -- -t postgresql -c tests/postgresql -i 127.0.0.1 -p 5432 -u postgres -P postgres -d postgres
 
 example: good-example bad-example
 

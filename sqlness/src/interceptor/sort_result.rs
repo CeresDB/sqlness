@@ -63,8 +63,8 @@ impl Interceptor for SortResultInterceptor {
 
         let new_lines = head
             .into_iter()
-            .chain(lines.into_iter())
-            .chain(tail.into_iter())
+            .chain(lines)
+            .chain(tail)
             .collect::<Vec<_>>();
         *result = new_lines.join("\n");
     }

@@ -13,4 +13,4 @@ readme = { workspace = true }
 async-trait = "0.1.64"
 clap = { version = "4.1.8", features = ["derive"] }
 futures = "0.3.26"
-sqlness = { path = "../sqlness", version = "0.5", features = ["mysql"] }
+sqlness = { path = "../sqlness", version = "0.5", features = ["mysql", "postgres"] }
