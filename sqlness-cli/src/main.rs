@@ -1,6 +1,6 @@
 // Copyright 2023 CeresDB Project Authors. Licensed under Apache-2.0.
 
-use std::{error::Error, fmt::Display, path::Path};
+use std::{fmt::Display, path::Path};
 
 use async_trait::async_trait;
 use clap::Parser;
@@ -40,8 +40,8 @@ struct Args {
     db: Option<String>,
 
     /// Which DBMS to test against
-    #[clap(short('r'), long)]
-    #[arg(value_enum, default_value_t = DBType::Mysql)]
+    #[clap(short('t'), long("type"))]
+    #[arg(value_enum, default_value_t)]
     db_type: DBType,
 }
 
@@ -64,16 +64,15 @@ impl Database for DBProxy {
 }
 
 impl DBProxy {
-    pub fn try_new(db_config: DatabaseConfig, db_type: DBType) -> Result<Self, Box<dyn Error>> {
-        let db = match db_type {
-            DBType::Mysql => {
-                Box::new(MysqlDatabase::try_new(db_config).expect("build db")) as Box<_>
-            }
+    pub fn new(db_config: DatabaseConfig, db_type: DBType) -> Self {
+        let database: Box<dyn Database + Sync + Send> = match db_type {
+            DBType::Mysql => Box::new(MysqlDatabase::try_new(db_config).expect("build mysql db")),
             DBType::Postgresql => {
-                Box::new(PostgresqlDatabase::try_new(&db_config).expect("build db")) as Box<_>
+                Box::new(PostgresqlDatabase::try_new(&db_config).expect("build postgresql db"))
             }
         };
-        Ok(DBProxy { database: db })
+
+        DBProxy { database }
     }
 }
 
@@ -93,7 +92,7 @@ impl EnvController for CliController {
     type DB = DBProxy;
 
     async fn start(&self, _env: &str, _config: Option<&Path>) -> Self::DB {
-        DBProxy::try_new(self.db_config.clone(), self.db_type).expect("build db")
+        DBProxy::new(self.db_config.clone(), self.db_type)
     }
 
     async fn stop(&self, _env: &str, _db: Self::DB) {}
@@ -117,8 +116,8 @@ fn main() {
         .expect("build config");
 
     block_on(async {
-        let cli = CliController::new(db_config, args.db_type);
-        let runner = Runner::new(config, cli);
+        let ctrl = CliController::new(db_config, args.db_type);
+        let runner = Runner::new(config, ctrl);
         runner.run().await.expect("run testcase")
     });
 
