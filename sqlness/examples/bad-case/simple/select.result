@@ -3,5 +3,5 @@ SELECT
 FROM
     `table`;
 
-Unexpected
+ok
 
