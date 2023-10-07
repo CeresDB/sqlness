@@ -8,12 +8,14 @@ use crate::{
     case::QueryContext,
     interceptor::{
         arg::ArgInterceptorFactory, env::EnvInterceptorFactory, replace::ReplaceInterceptorFactory,
+        sort_result::SortResultInterceptorFactory,
     },
 };
 
 pub mod arg;
 pub mod env;
 pub mod replace;
+pub mod sort_result;
 
 pub type InterceptorRef = Box<dyn Interceptor>;
 
@@ -37,5 +39,6 @@ pub fn builtin_interceptors() -> Vec<InterceptorFactoryRef> {
         Arc::new(ArgInterceptorFactory {}),
         Arc::new(ReplaceInterceptorFactory {}),
         Arc::new(EnvInterceptorFactory {}),
+        Arc::new(SortResultInterceptorFactory {}),
     ]
 }

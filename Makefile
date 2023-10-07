@@ -22,11 +22,12 @@ clippy:
 	cd $(DIR); cargo clippy --all-targets --all-features --workspace -- -D warnings
 
 cli-test:
-	cd $(DIR)/sqlness-cli;  cargo run -- -c tests -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public
+	cd $(DIR)/sqlness-cli;  cargo run -- -t mysql -c tests/mysql -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public
+	cd $(DIR)/sqlness-cli;  cargo run -- -t postgresql -c tests/postgresql -i 127.0.0.1 -p 5432 -u postgres -P postgres -d postgres
 
 example: good-example bad-example
 
-good-example: basic-example interceptor-arg-example echo-example
+good-example: basic-example interceptor-arg-example interceptor-replace-example interceptor-sort-result-example
 
 basic-example:
 	cd $(DIR)/sqlness; cargo run --example basic
@@ -37,5 +38,8 @@ bad-example:
 interceptor-arg-example:
 	cd $(DIR)/sqlness; cargo run --example interceptor_arg
 
-echo-example:
-	cd $(DIR)/sqlness; SECRET=23333 cargo run --example echo
+interceptor-replace-example:
+	cd $(DIR)/sqlness; cargo run --example interceptor_replace
+
+interceptor-sort-result-example:
+	cd $(DIR)/sqlness; cargo run --example interceptor_sort_result
