@@ -21,7 +21,13 @@ pub type InterceptorRef = Box<dyn Interceptor>;
 
 pub trait Interceptor {
     #[allow(unused_variables)]
-    fn before_execute(&self, query: &mut Vec<String>, context: &mut QueryContext) {}
+    fn before_execute(
+        &self,
+        display_query: &mut Vec<String>,
+        execute_query: &mut Vec<String>,
+        context: &mut QueryContext,
+    ) {
+    }
 
     #[allow(unused_variables)]
     fn after_execute(&self, result: &mut String) {}

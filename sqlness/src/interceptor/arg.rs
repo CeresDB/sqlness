@@ -25,7 +25,7 @@ pub struct ArgInterceptor {
 }
 
 impl Interceptor for ArgInterceptor {
-    fn before_execute(&self, _: &mut Vec<String>, context: &mut QueryContext) {
+    fn before_execute(&self, _: &mut Vec<String>, _: &mut Vec<String>, context: &mut QueryContext) {
         for (key, value) in &self.args {
             context.context.insert(key.to_string(), value.to_string());
         }

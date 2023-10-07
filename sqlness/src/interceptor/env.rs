@@ -2,8 +2,6 @@
 
 use std::collections::HashMap;
 
-use handlebars::Handlebars;
-
 use crate::case::QueryContext;
 use crate::interceptor::{Interceptor, InterceptorFactory, InterceptorRef};
 
@@ -16,14 +14,17 @@ pub struct EnvInterceptor {
 }
 
 impl Interceptor for EnvInterceptor {
-    fn before_execute(&self, query_lines: &mut Vec<String>, _: &mut QueryContext) {
-        let mut handlebars = Handlebars::new();
-        handlebars.set_strict_mode(true);
-        for line in query_lines {
-            let rendered = handlebars
-                .render_template(line.as_str(), &self.data)
-                .unwrap();
-            *line = rendered;
+    fn before_execute(
+        &self,
+        _: &mut Vec<String>,
+        execute_query: &mut Vec<String>,
+        _: &mut QueryContext,
+    ) {
+        for line in execute_query {
+            for (key, value) in &self.data {
+                let rendered = line.replace(key, value);
+                *line = rendered;
+            }
         }
     }
 }
@@ -47,8 +48,9 @@ impl EnvInterceptorFactory {
 
             let mut env_data = HashMap::new();
             for env in envs {
-                let value = std::env::var(env).unwrap_or_default();
-                env_data.insert(env.to_string(), value);
+                if let Ok(value) = std::env::var(env) {
+                    env_data.insert(format!("${env}"), value);
+                }
             }
 
             Some(EnvInterceptor { data: env_data })
@@ -67,12 +69,9 @@ mod test {
         let input = "ENV SECRET NONEXISTENT";
         std::env::set_var("SECRET", "2333");
 
-        let expected = [
-            ("SECRET".to_string(), "2333".to_string()),
-            ("NONEXISTENT".to_string(), "".to_string()),
-        ]
-        .into_iter()
-        .collect();
+        let expected = [("$SECRET".to_string(), "2333".to_string())]
+            .into_iter()
+            .collect();
 
         let interceptor = EnvInterceptorFactory::create(input).unwrap();
         assert_eq!(interceptor.data, expected);
