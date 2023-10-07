@@ -8,6 +8,30 @@ use crate::interceptor::{Interceptor, InterceptorFactory, InterceptorRef};
 const PREFIX: &str = "ENV";
 
 /// Read environment variables and fill them in query.
+///
+/// # Example
+/// ``` sql
+/// -- SQLNESS ENV SECRET
+/// SELECT $SECRET;
+/// ```
+///
+/// Environment variables declared in `ENV` interceptor will be replaced in the
+/// going to be executed. It won't be rendered in the result file so you can
+/// safely put secret things in your query.
+///
+/// Note that only decalred and present environment variables will be replaced.
+///
+/// You can either declare multiple env in one intercetor or separate them into
+/// different interceptors. The following two examples are equivalent:
+///
+/// ``` sql
+/// -- SQLNESS ENV SECRET1 SECRET2
+/// SELECT $SECRET1, $SECRET2;
+///
+/// -- SQLNESS ENV SECRET1
+/// -- SQLNESS ENV SECRET2
+/// SELECT $SECRET1, $SECRET2;
+/// ````
 #[derive(Debug)]
 pub struct EnvInterceptor {
     data: HashMap<String, String>,
