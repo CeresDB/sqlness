@@ -34,6 +34,7 @@ const PREFIX: &str = "ENV";
 /// ````
 #[derive(Debug)]
 pub struct EnvInterceptor {
+    /// Environment variables to be replaced.
     data: HashMap<String, String>,
 }
 
