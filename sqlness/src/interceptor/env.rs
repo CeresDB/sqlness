@@ -39,12 +39,7 @@ pub struct EnvInterceptor {
 }
 
 impl Interceptor for EnvInterceptor {
-    fn before_execute(
-        &self,
-        _: &mut Vec<String>,
-        execute_query: &mut Vec<String>,
-        _: &mut QueryContext,
-    ) {
+    fn before_execute(&self, execute_query: &mut Vec<String>, _: &mut QueryContext) {
         for line in execute_query {
             for (key, value) in &self.data {
                 let rendered = line.replace(key, value);

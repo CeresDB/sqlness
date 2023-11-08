@@ -157,11 +157,7 @@ impl Query {
         let mut context = QueryContext::default();
 
         for interceptor in &self.interceptors {
-            interceptor.before_execute(
-                &mut self.display_query,
-                &mut self.execute_query,
-                &mut context,
-            );
+            interceptor.before_execute(&mut self.execute_query, &mut context);
         }
 
         context
