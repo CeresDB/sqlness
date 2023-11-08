@@ -7,12 +7,13 @@ use std::sync::Arc;
 use crate::{
     case::QueryContext,
     interceptor::{
-        arg::ArgInterceptorFactory, replace::ReplaceInterceptorFactory,
+        arg::ArgInterceptorFactory, env::EnvInterceptorFactory, replace::ReplaceInterceptorFactory,
         sort_result::SortResultInterceptorFactory,
     },
 };
 
 pub mod arg;
+pub mod env;
 pub mod replace;
 pub mod sort_result;
 
@@ -20,7 +21,7 @@ pub type InterceptorRef = Box<dyn Interceptor>;
 
 pub trait Interceptor {
     #[allow(unused_variables)]
-    fn before_execute(&self, query: &mut Vec<String>, context: &mut QueryContext) {}
+    fn before_execute(&self, execute_query: &mut Vec<String>, context: &mut QueryContext) {}
 
     #[allow(unused_variables)]
     fn after_execute(&self, result: &mut String) {}
@@ -37,6 +38,7 @@ pub fn builtin_interceptors() -> Vec<InterceptorFactoryRef> {
     vec![
         Arc::new(ArgInterceptorFactory {}),
         Arc::new(ReplaceInterceptorFactory {}),
+        Arc::new(EnvInterceptorFactory {}),
         Arc::new(SortResultInterceptorFactory {}),
     ]
 }

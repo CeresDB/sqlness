@@ -27,7 +27,7 @@ cli-test:
 
 example: good-example bad-example
 
-good-example: basic-example interceptor-arg-example interceptor-replace-example interceptor-sort-result-example
+good-example: basic-example interceptor-arg-example interceptor-replace-example interceptor-sort-result-example interceptor-env-example
 
 basic-example:
 	cd $(DIR)/sqlness; cargo run --example basic
@@ -43,3 +43,6 @@ interceptor-replace-example:
 
 interceptor-sort-result-example:
 	cd $(DIR)/sqlness; cargo run --example interceptor_sort_result
+
+interceptor-env-example:
+	cd $(DIR)/sqlness; cargo run --example interceptor_env

@@ -96,7 +96,10 @@ pub struct QueryContext {
 #[derive(Default)]
 struct Query {
     comment_lines: Vec<String>,
-    query_lines: Vec<String>,
+    /// Query to be displayed in the result file
+    display_query: Vec<String>,
+    /// Query to be executed
+    execute_query: Vec<String>,
     interceptor_factories: Vec<InterceptorFactoryRef>,
     interceptors: Vec<InterceptorRef>,
 }
@@ -125,7 +128,8 @@ impl Query {
     }
 
     fn append_query_line(&mut self, line: &str) {
-        self.query_lines.push(line.to_string());
+        self.display_query.push(line.to_string());
+        self.execute_query.push(line.to_string());
     }
 
     async fn execute<W>(&mut self, db: &dyn Database, writer: &mut W) -> Result<()>
@@ -145,11 +149,15 @@ impl Query {
         Ok(())
     }
 
+    /// Run pre-execution interceptors.
+    ///
+    /// Interceptors may change either the query to be displayed or the query to be executed,
+    /// so we need to return the query to caller.
     fn before_execute_intercept(&mut self) -> QueryContext {
         let mut context = QueryContext::default();
 
         for interceptor in &self.interceptors {
-            interceptor.before_execute(&mut self.query_lines, &mut context);
+            interceptor.before_execute(&mut self.execute_query, &mut context);
         }
 
         context
@@ -161,8 +169,9 @@ impl Query {
         }
     }
 
+    /// Concat the query to be executed to a single string.
     fn concat_query_lines(&self) -> String {
-        self.query_lines
+        self.execute_query
             .iter()
             .fold(String::new(), |query, str| query + str)
             .trim_start()
@@ -178,7 +187,7 @@ impl Query {
             writer.write_all(comment.as_bytes())?;
             writer.write("\n".as_bytes())?;
         }
-        for line in &self.query_lines {
+        for line in &self.display_query {
             writer.write_all(line.as_bytes())?;
         }
         writer.write("\n\n".as_bytes())?;
