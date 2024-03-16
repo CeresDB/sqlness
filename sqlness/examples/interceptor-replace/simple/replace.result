@@ -19,3 +19,26 @@ SELECT 1;
 
 03/14/2012, 01/01/2013 and 07/05/2014;
 
+-- SQLNESS TEMPLATE {"name": "test"}
+SELECT * FROM table where name = "test";
+
+SELECT * FROM table where name = "test";
+
+-- SQLNESS TEMPLATE {"aggr": ["sum", "avg", "count"]}
+SELECT sum(c) from t  ;
+
+SELECT sum(c) from t  ;
+
+ SELECT avg(c) from t  ;
+
+ SELECT avg(c) from t  ;
+
+ SELECT count(c) from t ;
+
+ SELECT count(c) from t ;
+
+-- SQLNESS TEMPLATE
+INSERT INTO t (c) VALUES(1)  , (2)  , (3)  , (4) ;
+
+INSERT INTO t (c) VALUES(1)  , (2)  , (3)  , (4) ;
+
