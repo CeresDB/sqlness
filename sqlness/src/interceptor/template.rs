@@ -1,3 +1,5 @@
+// Copyright 2024 CeresDB Project Authors. Licensed under Apache-2.0.
+
 use minijinja::Environment;
 use serde_json::Value;
 

@@ -12,7 +12,7 @@ readme = { workspace = true }
 [dependencies]
 async-trait = "0.1"
 derive_builder = "0.11"
-minijinja = {version = "1", features = ["json"]}
+minijinja = "1"
 mysql = { version = "23.0.1", optional = true }
 postgres = { version = "0.19.7", optional = true }
 prettydiff = { version = "0.6.2", default_features = false }
