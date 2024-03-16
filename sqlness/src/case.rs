@@ -142,16 +142,19 @@ impl Query {
             writer.write_all(comment.as_bytes())?;
             writer.write_all("\n".as_bytes())?;
         }
+        for comment in &self.display_query {
+            writer.write_all(comment.as_bytes())?;
+        }
+        writer.write_all("\n\n".as_bytes())?;
 
         let sql = self.concat_query_lines();
         // An intercetor may generate multiple SQLs, so we need to split them.
         for sql in sql.split(QUERY_DELIMITER) {
             if !sql.trim().is_empty() {
-                let sql = format!("{sql};");
-                writer.write_all(sql.as_bytes())?;
-                writer.write_all("\n\n".as_bytes())?;
-
-                let mut result = db.query(context.clone(), sql).await.to_string();
+                let mut result = db
+                    .query(context.clone(), format!("{sql};"))
+                    .await
+                    .to_string();
                 self.after_execute_intercept(&mut result);
                 self.write_result(writer, result)?;
             }
