@@ -25,24 +25,15 @@ cli-test:
 	cd $(DIR)/sqlness-cli;  cargo run -- -t mysql -c tests/mysql -i 127.0.0.1 -p 3306 -u root -P 1a2b3c -d public
 	cd $(DIR)/sqlness-cli;  cargo run -- -t postgresql -c tests/postgresql -i 127.0.0.1 -p 5432 -u postgres -P postgres -d postgres
 
-example: good-example bad-example
-
-good-example: basic-example interceptor-arg-example interceptor-replace-example interceptor-sort-result-example interceptor-env-example
-
 basic-example:
 	cd $(DIR)/sqlness; cargo run --example basic
+
+interceptor-example:
+	cd $(DIR)/sqlness; cargo run --example interceptor
 
 bad-example:
 	cd $(DIR)/sqlness; cargo run --example bad
 
-interceptor-arg-example:
-	cd $(DIR)/sqlness; cargo run --example interceptor_arg
+good-example: basic-example interceptor-example
 
-interceptor-replace-example:
-	cd $(DIR)/sqlness; cargo run --example interceptor_replace
-
-interceptor-sort-result-example:
-	cd $(DIR)/sqlness; cargo run --example interceptor_sort_result
-
-interceptor-env-example:
-	cd $(DIR)/sqlness; cargo run --example interceptor_env
+example: good-example bad-example
