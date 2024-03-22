@@ -16,6 +16,7 @@ use crate::{
 };
 
 const COMMENT_PREFIX: &str = "--";
+const QUERY_DELIMITER: char = ';';
 
 pub(crate) struct TestCase {
     name: String,
@@ -55,7 +56,7 @@ impl TestCase {
             query.append_query_line(&line);
 
             // SQL statement ends with ';'
-            if line.ends_with(';') {
+            if line.ends_with(QUERY_DELIMITER) {
                 queries.push(query);
                 query = Query::with_interceptor_factories(cfg.interceptor_factories.clone());
             } else {
@@ -88,7 +89,7 @@ impl Display for TestCase {
 }
 
 /// A String-to-String map used as query context.
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct QueryContext {
     pub context: HashMap<String, String>,
 }
@@ -137,14 +138,27 @@ impl Query {
         W: Write,
     {
         let context = self.before_execute_intercept();
+        for comment in &self.comment_lines {
+            writer.write_all(comment.as_bytes())?;
+            writer.write_all("\n".as_bytes())?;
+        }
+        for comment in &self.display_query {
+            writer.write_all(comment.as_bytes())?;
+        }
+        writer.write_all("\n\n".as_bytes())?;
 
-        let mut result = db
-            .query(context, self.concat_query_lines())
-            .await
-            .to_string();
-
-        self.after_execute_intercept(&mut result);
-        self.write_result(writer, result)?;
+        let sql = self.concat_query_lines();
+        // An intercetor may generate multiple SQLs, so we need to split them.
+        for sql in sql.split(QUERY_DELIMITER) {
+            if !sql.trim().is_empty() {
+                let mut result = db
+                    .query(context.clone(), format!("{sql};"))
+                    .await
+                    .to_string();
+                self.after_execute_intercept(&mut result);
+                self.write_result(writer, result)?;
+            }
+        }
 
         Ok(())
     }
@@ -183,14 +197,6 @@ impl Query {
     where
         W: Write,
     {
-        for comment in &self.comment_lines {
-            writer.write_all(comment.as_bytes())?;
-            writer.write("\n".as_bytes())?;
-        }
-        for line in &self.display_query {
-            writer.write_all(line.as_bytes())?;
-        }
-        writer.write("\n\n".as_bytes())?;
         writer.write_all(result.as_bytes())?;
         writer.write("\n\n".as_bytes())?;
 
