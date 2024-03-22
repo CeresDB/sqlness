@@ -12,15 +12,20 @@ struct MyDB;
 
 #[async_trait]
 impl Database for MyDB {
-    async fn query(&self, ctx: QueryContext, _query: String) -> Box<dyn Display> {
+    async fn query(&self, ctx: QueryContext, query: String) -> Box<dyn Display> {
         let mut args = ctx.context.into_iter().collect::<Vec<_>>();
+        if args.is_empty() {
+            return Box::new(query);
+        }
+
         args.sort();
-        let result = args
+        let args = args
             .into_iter()
             .map(|(k, v)| format!("{k}={v}"))
             .collect::<Vec<_>>()
-            .join("\n");
-        return Box::new(result);
+            .join(", ");
+        let result = format!("Args: {args}\n\n{query}");
+        Box::new(result)
     }
 }
 
@@ -47,9 +52,11 @@ impl EnvController for MyController {
 
 #[tokio::main]
 async fn main() {
+    std::env::set_var("ENV1", "value1");
+    std::env::set_var("ENV2", "value2");
     let env = MyController;
     let config = ConfigBuilder::default()
-        .case_dir("examples/interceptor-arg".to_string())
+        .case_dir("examples/interceptor-case".to_string())
         .build()
         .unwrap();
     let runner = Runner::new(config, env);

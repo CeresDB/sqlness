@@ -1,8 +1,0 @@
--- SQLNESS ARG bla=a addr=127.0.0.1 port=3306
-SELECT * FROM t;
-
--- SQLNESS 🤪ARG🤪 addr=127.0.0.1 port=3306
--- SQLNESS   ARG port=3307
-SELECT * 
-FROM t
-WHERE A=B;

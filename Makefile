@@ -35,14 +35,5 @@ basic-example:
 bad-example:
 	cd $(DIR)/sqlness; cargo run --example bad
 
-interceptor-arg-example:
-	cd $(DIR)/sqlness; cargo run --example interceptor_arg
-
-interceptor-replace-example:
-	cd $(DIR)/sqlness; cargo run --example interceptor_replace
-
-interceptor-sort-result-example:
-	cd $(DIR)/sqlness; cargo run --example interceptor_sort_result
-
-interceptor-env-example:
-	cd $(DIR)/sqlness; cargo run --example interceptor_env
+interceptor-example:
+	cd $(DIR)/sqlness; cargo run --example interceptor
