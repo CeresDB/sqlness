@@ -161,6 +161,7 @@ impl<E: EnvController> Runner<E> {
             .create(true)
             .write(true)
             .read(true)
+            .truncate(false)
             .open(&result_path)?;
 
         // Read old result out for compare later
