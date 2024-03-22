@@ -2,7 +2,7 @@
 
 //! Query interceptor implementations.
 
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use crate::{
     case::QueryContext,
@@ -35,12 +35,19 @@ pub trait InterceptorFactory {
 }
 
 /// Interceptors builtin sqlness
-pub fn builtin_interceptors() -> Vec<InterceptorFactoryRef> {
-    vec![
-        Arc::new(ArgInterceptorFactory {}),
-        Arc::new(ReplaceInterceptorFactory {}),
-        Arc::new(EnvInterceptorFactory {}),
-        Arc::new(SortResultInterceptorFactory {}),
-        Arc::new(TemplateInterceptorFactory {}),
+pub fn builtin_interceptors() -> HashMap<String, InterceptorFactoryRef> {
+    [
+        (
+            arg::PREFIX.to_string(),
+            Arc::new(ArgInterceptorFactory {}) as InterceptorFactoryRef,
+        ),
+        // Arc::new(ArgInterceptorFactory {}),
+        // Arc::new(ReplaceInterceptorFactory {}),
+        // Arc::new(EnvInterceptorFactory {}),
+        // Arc::new(SortResultInterceptorFactory {}),
+        // Arc::new(TemplateInterceptorFactory {}),
     ]
+    .into_iter()
+    .map(|(prefix, factory)| (prefix.to_string(), factory))
+    .collect()
 }

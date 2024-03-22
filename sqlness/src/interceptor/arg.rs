@@ -3,7 +3,7 @@
 use crate::case::QueryContext;
 use crate::interceptor::{Interceptor, InterceptorFactory, InterceptorRef};
 
-const PREFIX: &str = "ARG";
+pub const PREFIX: &str = "ARG";
 
 /// Pass arguments to the [QueryContext].
 ///

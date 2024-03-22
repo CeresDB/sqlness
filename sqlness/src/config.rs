@@ -1,5 +1,7 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
+use std::collections::HashMap;
+
 use derive_builder::Builder;
 
 use crate::interceptor::{builtin_interceptors, InterceptorFactoryRef};
@@ -36,10 +38,9 @@ pub struct Config {
     /// Defaults to "true" (follow symbolic links).
     #[builder(default = "Config::default_follow_links()")]
     pub follow_links: bool,
-
     /// Interceptors used to pre-process input query and post-process query response
     #[builder(default = "Config::default_interceptors()")]
-    pub interceptor_factories: Vec<InterceptorFactoryRef>,
+    pub interceptor_factories: HashMap<String, InterceptorFactoryRef>,
 }
 
 impl Config {
@@ -75,7 +76,7 @@ impl Config {
         true
     }
 
-    fn default_interceptors() -> Vec<InterceptorFactoryRef> {
+    fn default_interceptors() -> HashMap<String, InterceptorFactoryRef> {
         builtin_interceptors()
     }
 }
