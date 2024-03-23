@@ -1,7 +1,6 @@
 -- SQLNESS ARG bla=a addr=127.0.0.1 port=3306
 SELECT * FROM t;
 
--- SQLNESS 🤪ARG🤪 addr=127.0.0.1 port=3306
 -- SQLNESS   ARG port=3307
 SELECT *
 FROM t
@@ -64,8 +63,3 @@ INSERT INTO t (c) VALUES
 4
 2
 2;
-
--- SQLNESS SORT_RESULT -1
-6
-2
-4;

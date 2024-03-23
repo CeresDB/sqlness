@@ -68,5 +68,4 @@ pub use config::{Config, ConfigBuilder, DatabaseConfig, DatabaseConfigBuilder};
 pub use database::Database;
 pub use environment::EnvController;
 pub use error::SqlnessError;
-pub use interceptor::builtin_interceptors;
 pub use runner::Runner;

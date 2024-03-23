@@ -1,9 +1,10 @@
 // Copyright 2022 CeresDB Project Authors. Licensed under Apache-2.0.
 
 use crate::case::QueryContext;
+use crate::error::Result;
 use crate::interceptor::{Interceptor, InterceptorFactory, InterceptorRef};
 
-const PREFIX: &str = "ARG";
+pub const PREFIX: &str = "ARG";
 
 /// Pass arguments to the [QueryContext].
 ///
@@ -35,14 +36,9 @@ impl Interceptor for ArgInterceptor {
 pub struct ArgInterceptorFactory;
 
 impl InterceptorFactory for ArgInterceptorFactory {
-    fn try_new(&self, interceptor: &str) -> Option<InterceptorRef> {
-        if interceptor.starts_with(PREFIX) {
-            let args =
-                Self::separate_key_value_pairs(interceptor.trim_start_matches(PREFIX).trim_start());
-            Some(Box::new(ArgInterceptor { args }))
-        } else {
-            None
-        }
+    fn try_new(&self, ctx: &str) -> Result<InterceptorRef> {
+        let args = Self::separate_key_value_pairs(ctx);
+        Ok(Box::new(ArgInterceptor { args }))
     }
 }
 
@@ -64,7 +60,7 @@ mod test {
 
     #[test]
     fn cut_arg_string() {
-        let input = "ARG arg1=value1 arg2=value2 arg3=a=b=c arg4= arg5=,,,";
+        let input = "arg1=value1 arg2=value2 arg3=a=b=c arg4= arg5=,,,";
         let expected = vec![
             ("arg1".to_string(), "value1".to_string()),
             ("arg2".to_string(), "value2".to_string()),

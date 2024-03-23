@@ -3,9 +3,10 @@
 use std::collections::HashMap;
 
 use crate::case::QueryContext;
+use crate::error::Result;
 use crate::interceptor::{Interceptor, InterceptorFactory, InterceptorRef};
 
-const PREFIX: &str = "ENV";
+pub const PREFIX: &str = "ENV";
 
 /// Read environment variables and fill them in query.
 ///
@@ -52,31 +53,24 @@ impl Interceptor for EnvInterceptor {
 pub struct EnvInterceptorFactory;
 
 impl InterceptorFactory for EnvInterceptorFactory {
-    fn try_new(&self, interceptor: &str) -> Option<InterceptorRef> {
-        Self::create(interceptor).map(|i| Box::new(i) as InterceptorRef)
+    fn try_new(&self, ctx: &str) -> Result<InterceptorRef> {
+        Self::create(ctx).map(|v| Box::new(v) as _)
     }
 }
 
 impl EnvInterceptorFactory {
-    fn create(interceptor: &str) -> Option<EnvInterceptor> {
-        if interceptor.starts_with(PREFIX) {
-            let input = interceptor
-                .trim_start_matches(PREFIX)
-                .trim_start()
-                .trim_end();
-            let envs = input.split(' ').collect::<Vec<_>>();
+    fn create(s: &str) -> Result<EnvInterceptor> {
+        let input = s.trim_start().trim_end();
+        let envs = input.split(' ').collect::<Vec<_>>();
 
-            let mut env_data = HashMap::new();
-            for env in envs {
-                if let Ok(value) = std::env::var(env) {
-                    env_data.insert(format!("${env}"), value);
-                }
+        let mut data = HashMap::new();
+        for env in envs {
+            if let Ok(value) = std::env::var(env) {
+                data.insert(format!("${env}"), value);
             }
-
-            Some(EnvInterceptor { data: env_data })
-        } else {
-            None
         }
+
+        Ok(EnvInterceptor { data })
     }
 }
 
@@ -86,7 +80,7 @@ mod test {
 
     #[test]
     fn cut_env_string() {
-        let input = "ENV SECRET NONEXISTENT";
+        let input = "SECRET NONEXISTENT";
         std::env::set_var("SECRET", "2333");
 
         let expected = [("$SECRET".to_string(), "2333".to_string())]
