@@ -2,9 +2,13 @@
 
 use std::collections::VecDeque;
 
-use crate::interceptor::{Interceptor, InterceptorFactory, InterceptorRef};
+use crate::{
+    error::Result,
+    interceptor::{Interceptor, InterceptorFactory, InterceptorRef},
+    SqlnessError,
+};
 
-const PREFIX: &str = "SORT_RESULT";
+pub const PREFIX: &str = "SORT_RESULT";
 
 /// Sort the query result in lexicographical order.
 ///
@@ -73,29 +77,29 @@ impl Interceptor for SortResultInterceptor {
 pub struct SortResultInterceptorFactory;
 
 impl InterceptorFactory for SortResultInterceptorFactory {
-    fn try_new(&self, interceptor: &str) -> Option<InterceptorRef> {
-        Self::try_new_from_str(interceptor).map(|i| Box::new(i) as _)
-    }
-}
+    fn try_new(&self, ctx: &str) -> Result<InterceptorRef> {
+        let mut args = ctx.splitn(2, ' ').filter(|s| !s.is_empty());
+        let ignore_head =
+            args.next()
+                .unwrap_or("0")
+                .parse()
+                .map_err(|e| SqlnessError::InvalidContext {
+                    prefix: PREFIX.to_string(),
+                    msg: format!("Expect number, err:{e}"),
+                })?;
+        let ignore_tail =
+            args.next()
+                .unwrap_or("0")
+                .parse()
+                .map_err(|e| SqlnessError::InvalidContext {
+                    prefix: PREFIX.to_string(),
+                    msg: format!("Expect number, err:{e}"),
+                })?;
 
-impl SortResultInterceptorFactory {
-    fn try_new_from_str(interceptor: &str) -> Option<SortResultInterceptor> {
-        if interceptor.starts_with(PREFIX) {
-            let args = interceptor
-                .trim_start_matches(PREFIX)
-                .trim_start()
-                .trim_end();
-            let mut args = args.splitn(2, ' ').filter(|s| !s.is_empty());
-            let ignore_head = args.next().unwrap_or("0").parse().ok()?;
-            let ignore_tail = args.next().unwrap_or("0").parse().ok()?;
-
-            Some(SortResultInterceptor {
-                ignore_head,
-                ignore_tail,
-            })
-        } else {
-            None
-        }
+        Ok(Box::new(SortResultInterceptor {
+            ignore_head,
+            ignore_tail,
+        }))
     }
 }
 
@@ -104,24 +108,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn construct_with_empty_string() {
-        let input = "SORT_RESULT";
-        let sort_result = SortResultInterceptorFactory::try_new_from_str(input).unwrap();
-        assert_eq!(sort_result.ignore_head, 0);
-        assert_eq!(sort_result.ignore_tail, 0);
-    }
-
-    #[test]
     fn construct_with_negative() {
-        let input = "SORT_RESULT -1";
-        let interceptor = SortResultInterceptorFactory.try_new(input);
-        assert!(interceptor.is_none());
+        let interceptor = SortResultInterceptorFactory.try_new("-1");
+        assert!(interceptor.is_err());
     }
 
     #[test]
     fn sort_result_full() {
-        let input = "SORT_RESULT";
-        let interceptor = SortResultInterceptorFactory.try_new(input).unwrap();
+        let interceptor = SortResultInterceptorFactory.try_new("").unwrap();
 
         let cases = [
             (
@@ -158,8 +152,7 @@ mod tests {
 
     #[test]
     fn ignore_head_exceeds_length() {
-        let input = "SORT_RESULT 10000";
-        let interceptor = SortResultInterceptorFactory.try_new(input).unwrap();
+        let interceptor = SortResultInterceptorFactory.try_new("10000").unwrap();
 
         let mut exec_result = String::from(
             "3\
@@ -173,8 +166,7 @@ mod tests {
 
     #[test]
     fn ignore_tail_exceeds_length() {
-        let input = "SORT_RESULT 0 10000";
-        let interceptor = SortResultInterceptorFactory.try_new(input).unwrap();
+        let interceptor = SortResultInterceptorFactory.try_new("0 10000").unwrap();
 
         let mut exec_result = String::from(
             "3\

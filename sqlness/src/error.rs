@@ -29,6 +29,15 @@ pub enum SqlnessError {
 
     #[error("Invalid regexp, source error: {0}")]
     Regex(#[from] regex::Error),
+
+    #[error("Unknown interceptor prefix, value:{prefix}.")]
+    UnknownInterceptor { prefix: String },
+
+    #[error("Invalid interceptor context, prefix:{prefix}, msg:{msg}.")]
+    InvalidContext { prefix: String, msg: String },
+
+    #[error("Missing interceptor prefix, line:{line}.")]
+    MissingPrefix { line: String },
 }
 
 pub(crate) type Result<T> = std::result::Result<T, SqlnessError>;

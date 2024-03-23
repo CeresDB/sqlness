@@ -11,7 +11,7 @@ use std::{
 use crate::{
     config::Config,
     error::Result,
-    interceptor::{InterceptorFactoryRef, InterceptorRef},
+    interceptor::{InterceptorRef, Registry},
     Database, SqlnessError,
 };
 
@@ -31,7 +31,7 @@ impl TestCase {
         })?;
 
         let mut queries = vec![];
-        let mut query = Query::with_interceptor_factories(cfg.interceptor_factories.clone());
+        let mut query = Query::with_interceptor_factories(cfg.interceptor_registry.clone());
 
         let reader = BufReader::new(file);
         for line in reader.lines() {
@@ -43,7 +43,7 @@ impl TestCase {
 
                 // intercept command start with INTERCEPTOR_PREFIX
                 if line.starts_with(&cfg.interceptor_prefix) {
-                    query.push_interceptor(&cfg.interceptor_prefix, line);
+                    query.push_interceptor(&cfg.interceptor_prefix, line)?;
                 }
                 continue;
             }
@@ -58,7 +58,7 @@ impl TestCase {
             // SQL statement ends with ';'
             if line.ends_with(QUERY_DELIMITER) {
                 queries.push(query);
-                query = Query::with_interceptor_factories(cfg.interceptor_factories.clone());
+                query = Query::with_interceptor_factories(cfg.interceptor_registry.clone());
             } else {
                 query.append_query_line("\n");
             }
@@ -101,26 +101,31 @@ struct Query {
     display_query: Vec<String>,
     /// Query to be executed
     execute_query: Vec<String>,
-    interceptor_factories: Vec<InterceptorFactoryRef>,
+    interceptor_registry: Registry,
     interceptors: Vec<InterceptorRef>,
 }
 
 impl Query {
-    pub fn with_interceptor_factories(interceptor_factories: Vec<InterceptorFactoryRef>) -> Self {
+    pub fn with_interceptor_factories(interceptor_registry: Registry) -> Self {
         Self {
-            interceptor_factories,
+            interceptor_registry,
             ..Default::default()
         }
     }
 
-    fn push_interceptor(&mut self, interceptor_prefix: &str, interceptor_line: String) {
-        let interceptor_text = interceptor_line
-            .trim_start_matches(interceptor_prefix)
-            .trim_start();
-        for factories in &self.interceptor_factories {
-            if let Some(interceptor) = factories.try_new(interceptor_text) {
-                self.interceptors.push(interceptor);
-            }
+    fn push_interceptor(
+        &mut self,
+        interceptor_prefix: &str,
+        interceptor_line: String,
+    ) -> Result<()> {
+        if let Some((_, remaining)) = interceptor_line.split_once(interceptor_prefix) {
+            let interceptor = self.interceptor_registry.create(remaining)?;
+            self.interceptors.push(interceptor);
+            Ok(())
+        } else {
+            Err(SqlnessError::MissingPrefix {
+                line: interceptor_line,
+            })
         }
     }
 

@@ -3,11 +3,13 @@
 use minijinja::Environment;
 use serde_json::Value;
 
-use super::{Interceptor, InterceptorFactory, InterceptorRef};
+use crate::error::Result;
+use crate::interceptor::{Interceptor, InterceptorFactory, InterceptorRef};
+use crate::SqlnessError;
 
 pub struct TemplateInterceptorFactory;
 
-const PREFIX: &str = "TEMPLATE";
+pub const PREFIX: &str = "TEMPLATE";
 
 /// Templated query, powered by [minijinja](https://github.com/mitsuhiko/minijinja).
 /// The template syntax can be found [here](https://docs.rs/minijinja/latest/minijinja/syntax/index.html).
@@ -37,10 +39,10 @@ const PREFIX: &str = "TEMPLATE";
 ///
 #[derive(Debug)]
 pub struct TemplateInterceptor {
-    json_ctx: String,
+    data_bindings: Value,
 }
 
-fn sql_delimiter() -> Result<String, minijinja::Error> {
+fn sql_delimiter() -> std::result::Result<String, minijinja::Error> {
     Ok(";".to_string())
 }
 
@@ -51,12 +53,7 @@ impl Interceptor for TemplateInterceptor {
         env.add_function("sql_delimiter", sql_delimiter);
         env.add_template("sql", &input).unwrap();
         let tmpl = env.get_template("sql").unwrap();
-        let bindings: Value = if self.json_ctx.is_empty() {
-            serde_json::from_str("{}").unwrap()
-        } else {
-            serde_json::from_str(&self.json_ctx).unwrap()
-        };
-        let rendered = tmpl.render(bindings).unwrap();
+        let rendered = tmpl.render(&self.data_bindings).unwrap();
         *execute_query = rendered
             .split('\n')
             .map(|v| v.to_string())
@@ -67,19 +64,18 @@ impl Interceptor for TemplateInterceptor {
 }
 
 impl InterceptorFactory for TemplateInterceptorFactory {
-    fn try_new(&self, interceptor: &str) -> Option<InterceptorRef> {
-        Self::try_new_from_str(interceptor).map(|i| Box::new(i) as _)
-    }
-}
-
-impl TemplateInterceptorFactory {
-    fn try_new_from_str(interceptor: &str) -> Option<TemplateInterceptor> {
-        if interceptor.starts_with(PREFIX) {
-            let json_ctx = interceptor.trim_start_matches(PREFIX).to_string();
-            Some(TemplateInterceptor { json_ctx })
+    fn try_new(&self, ctx: &str) -> Result<InterceptorRef> {
+        let data_bindings = if ctx.is_empty() {
+            serde_json::from_str("{}")
         } else {
-            None
+            serde_json::from_str(ctx)
         }
+        .map_err(|e| SqlnessError::InvalidContext {
+            prefix: PREFIX.to_string(),
+            msg: format!("Expect json, err:{e}"),
+        })?;
+
+        Ok(Box::new(TemplateInterceptor { data_bindings }))
     }
 }
 
@@ -90,7 +86,7 @@ mod tests {
     #[test]
     fn basic_template() {
         let interceptor = TemplateInterceptorFactory
-            .try_new(r#"TEMPLATE {"name": "test"}"#)
+            .try_new(r#"{"name": "test"}"#)
             .unwrap();
 
         let mut input = vec!["SELECT * FROM table where name = '{{name}}'".to_string()];
@@ -102,7 +98,7 @@ mod tests {
     #[test]
     fn vector_template() {
         let interceptor = TemplateInterceptorFactory
-            .try_new(r#"TEMPLATE {"aggr": ["sum", "count", "avg"]}"#)
+            .try_new(r#"{"aggr": ["sum", "count", "avg"]}"#)
             .unwrap();
 
         let mut input = [
@@ -129,7 +125,7 @@ mod tests {
 
     #[test]
     fn range_template() {
-        let interceptor = TemplateInterceptorFactory.try_new(r#"TEMPLATE"#).unwrap();
+        let interceptor = TemplateInterceptorFactory.try_new(r#""#).unwrap();
 
         let mut input = [
             "INSERT INTO t (c) VALUES",

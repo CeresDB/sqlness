@@ -1,10 +1,11 @@
 // Copyright 2023 CeresDB Project Authors. Licensed under Apache-2.0.
 
+use crate::error::Result;
+use crate::interceptor::{Interceptor, InterceptorFactory, InterceptorRef};
+use crate::SqlnessError;
 use regex::Regex;
 
-use crate::interceptor::{Interceptor, InterceptorFactory, InterceptorRef};
-
-const PREFIX: &str = "REPLACE";
+pub const PREFIX: &str = "REPLACE";
 
 /// Replace all matched occurrences in execution result to the given string.
 /// The pattern is treated as a regular expression.
@@ -49,26 +50,27 @@ impl Interceptor for ReplaceInterceptor {
 pub struct ReplaceInterceptorFactory;
 
 impl InterceptorFactory for ReplaceInterceptorFactory {
-    fn try_new(&self, interceptor: &str) -> Option<InterceptorRef> {
-        if interceptor.starts_with(PREFIX) {
-            let args = interceptor
-                .trim_start_matches(PREFIX)
-                .trim_start()
-                .trim_end();
-            // TODO(ruihang): support pattern with blanks
-            let mut args = args.splitn(2, ' ');
-            let pattern = args.next()?.to_string();
-            if pattern.is_empty() {
-                return None;
-            }
-            let replacement = args.next().unwrap_or("").to_string();
-            Some(Box::new(ReplaceInterceptor {
-                pattern,
-                replacement,
-            }))
-        } else {
-            None
+    fn try_new(&self, ctx: &str) -> Result<InterceptorRef> {
+        // TODO(ruihang): support pattern with blanks
+        let mut args = ctx.splitn(2, ' ');
+        let pattern = args
+            .next()
+            .ok_or_else(|| SqlnessError::InvalidContext {
+                prefix: PREFIX.to_string(),
+                msg: "Expect <pattern> [replacement]".to_string(),
+            })?
+            .to_string();
+        if pattern.is_empty() {
+            return Err(SqlnessError::InvalidContext {
+                prefix: PREFIX.to_string(),
+                msg: "Pattern shouldn't be empty".to_string(),
+            });
         }
+        let replacement = args.next().unwrap_or("").to_string();
+        Ok(Box::new(ReplaceInterceptor {
+            pattern,
+            replacement,
+        }))
     }
 }
 
@@ -78,15 +80,13 @@ mod tests {
 
     #[test]
     fn construct_replace_with_empty_string() {
-        let input = "REPLACE ";
-        let interceptor = ReplaceInterceptorFactory {}.try_new(input);
-        assert!(interceptor.is_none());
+        let interceptor = ReplaceInterceptorFactory {}.try_new("");
+        assert!(interceptor.is_err());
     }
 
     #[test]
     fn replace_without_replacement() {
-        let input = "REPLACE 0";
-        let interceptor = ReplaceInterceptorFactory {}.try_new(input).unwrap();
+        let interceptor = ReplaceInterceptorFactory {}.try_new("0").unwrap();
 
         let mut exec_result = "000010101".to_string();
         interceptor.after_execute(&mut exec_result);
@@ -95,8 +95,7 @@ mod tests {
 
     #[test]
     fn simple_replace() {
-        let input = "REPLACE 00 2";
-        let interceptor = ReplaceInterceptorFactory {}.try_new(input).unwrap();
+        let interceptor = ReplaceInterceptorFactory {}.try_new("00 2").unwrap();
 
         let mut exec_result = "0000010101".to_string();
         interceptor.after_execute(&mut exec_result);
