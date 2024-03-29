@@ -24,7 +24,7 @@ cargo add sqlness
 
 Then implement `Database` and `EnvController` trait to setup your tests.
 
-Users can refer [basic.rs](sqlness/examples/basic.rs) for a complete example.
+Refer [basic.rs](sqlness/examples/basic.rs) for a complete example.
 
 ## Use as CLI
 ```bash
