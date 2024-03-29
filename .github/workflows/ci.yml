@@ -29,12 +29,10 @@ jobs:
       matrix:
         rust: [stable]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
-      - run: |
-          rustup set auto-self-update disable
-          rustup toolchain install ${{ matrix.rust }} --profile minimal
+      - uses: dtolnay/rust-toolchain@stable
       - name: Cache Rust Dependencies
         uses: actions/cache@v3
         with:
@@ -100,12 +98,10 @@ jobs:
       matrix:
         rust: [stable]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
-      - run: |
-          rustup set auto-self-update disable
-          rustup toolchain install ${{ matrix.rust }} --profile minimal
+      - uses: dtolnay/rust-toolchain@stable
       - name: Cache Rust Dependencies
         uses: actions/cache@v3
         with:
