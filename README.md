@@ -12,7 +12,7 @@ An ergonomic, opinionated framework for SQL integration test.
 
 # Usage
 
-You can use sqlness as library or as command lines tools directly, it support MySQL/PostgreSQL wire protocol.
+SQLNESS can be used as library or as command lines tool directly, it support MySQL/PostgreSQL wire protocol.
 
 ## Use as library
 
@@ -22,9 +22,7 @@ First add sqlness to your project:
 cargo add sqlness
 ```
 
-Then implement `Database` and `EnvController` trait to setup your tests.
-
-Refer [basic.rs](sqlness/examples/basic.rs) for a complete example.
+Then implement `Database` and `EnvController` trait to setup your tests. Refer [basic.rs](sqlness/examples/basic.rs) for a complete example.
 
 ## Use as CLI
 ```bash
