@@ -4,22 +4,9 @@ use std::pin::Pin;
 use std::task::Context;
 use std::time::{Duration, Instant};
 
-use futures::Future;
-use hierarchical_hash_wheel_timer::thread_timer::*;
-use hierarchical_hash_wheel_timer::*;
-use once_cell::sync::Lazy;
-use uuid::Uuid;
-
 use crate::error::Result;
 use crate::interceptor::{Interceptor, InterceptorFactory, InterceptorRef};
 use crate::SqlnessError;
-
-pub struct TemplateInterceptorFactory;
-
-/// This create a thread dedicated to the timer wheel.
-pub static TIMER_WHEEL: Lazy<
-    TimerWithThread<Uuid, OneShotClosureState<Uuid>, PeriodicClosureState<Uuid>>,
-> = Lazy::new(TimerWithThread::for_uuid_closures);
 
 pub const PREFIX: &str = "SLEEP";
 
@@ -51,18 +38,16 @@ impl Interceptor for SleepInterceptor {
             now: Instant,
             milliseconds: u64,
         }
-        impl Future for Sleep {
+        impl core::future::Future for Sleep {
             type Output = ();
             fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> std::task::Poll<Self::Output> {
                 let elapsed = self.now.elapsed().as_millis() as u64;
                 let remaining = self.milliseconds.saturating_sub(elapsed);
                 if elapsed < self.milliseconds {
-                    let mut timer = TIMER_WHEEL.timer_ref();
-                    let id = Uuid::new_v4();
-                    // wait for the remaining time
-                    let delay = Duration::from_millis(remaining);
                     let waker = cx.waker().clone();
-                    timer.schedule_action_once(id, delay, move |_timer_id| {
+                    // detach the thread and let it wake the waker later
+                    std::thread::spawn(move || {
+                        std::thread::sleep(Duration::from_millis(remaining));
                         waker.wake();
                     });
                     std::task::Poll::Pending
@@ -100,9 +85,11 @@ mod test {
     #[tokio::test]
     async fn wait_1500ms() {
         let input = "1500";
-        let interceptor = SleepInterceptorFactory{}.try_new(input).unwrap();
+        let interceptor = SleepInterceptorFactory {}.try_new(input).unwrap();
         let now = Instant::now();
-        interceptor.before_execute_async(&mut vec![], &mut crate::QueryContext::default()).await;
+        interceptor
+            .before_execute_async(&mut vec![], &mut crate::QueryContext::default())
+            .await;
         let elasped = now.elapsed().as_millis() as u64;
         assert!(elasped >= 1500);
     }
