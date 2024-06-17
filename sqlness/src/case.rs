@@ -177,7 +177,8 @@ impl Query {
 
         for interceptor in &self.interceptors {
             interceptor
-                .before_execute_async(&mut self.execute_query, &mut context).await;
+                .before_execute_async(&mut self.execute_query, &mut context)
+                .await;
         }
 
         context
