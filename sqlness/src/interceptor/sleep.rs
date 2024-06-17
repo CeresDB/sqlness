@@ -41,7 +41,7 @@ pub struct SleepInterceptor {
 
 #[async_trait::async_trait]
 impl Interceptor for SleepInterceptor {
-    async fn before_execute(
+    async fn before_execute_async(
         &self,
         _execute_query: &mut Vec<String>,
         _context: &mut crate::case::QueryContext,
@@ -102,7 +102,7 @@ mod test {
         let input = "1500";
         let interceptor = SleepInterceptorFactory{}.try_new(input).unwrap();
         let now = Instant::now();
-        interceptor.before_execute(&mut vec![], &mut crate::QueryContext::default()).await;
+        interceptor.before_execute_async(&mut vec![], &mut crate::QueryContext::default()).await;
         let elasped = now.elapsed().as_millis() as u64;
         assert!(elasped >= 1500);
     }

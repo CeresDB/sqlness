@@ -26,10 +26,24 @@ pub type InterceptorRef = Box<dyn Interceptor + Send + Sync>;
 #[async_trait::async_trait]
 pub trait Interceptor {
     #[allow(unused_variables)]
-    async fn before_execute(&self, execute_query: &mut Vec<String>, context: &mut QueryContext) {}
+    fn before_execute(&self, execute_query: &mut Vec<String>, context: &mut QueryContext) {}
 
     #[allow(unused_variables)]
-    async fn after_execute(&self, result: &mut String) {}
+    async fn before_execute_async(
+        &self,
+        execute_query: &mut Vec<String>,
+        context: &mut QueryContext,
+    ) {
+        self.before_execute(execute_query, context)
+    }
+
+    #[allow(unused_variables)]
+    fn after_execute(&self, result: &mut String) {}
+
+    #[allow(unused_variables)]
+    async fn after_execute_async(&self, result: &mut String) {
+        self.after_execute(result)
+    }
 }
 
 pub type InterceptorFactoryRef = Arc<dyn InterceptorFactory>;
