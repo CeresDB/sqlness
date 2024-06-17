@@ -43,8 +43,9 @@ pub struct SortResultInterceptor {
     ignore_tail: usize,
 }
 
+#[async_trait::async_trait]
 impl Interceptor for SortResultInterceptor {
-    fn after_execute(&self, result: &mut String) {
+    async fn after_execute(&self, result: &mut String) {
         let mut lines = result.lines().collect::<VecDeque<_>>();
         let mut head = Vec::with_capacity(self.ignore_head);
         let mut tail = Vec::with_capacity(self.ignore_tail);
@@ -113,8 +114,8 @@ mod tests {
         assert!(interceptor.is_err());
     }
 
-    #[test]
-    fn sort_result_full() {
+    #[tokio::test]
+    async fn sort_result_full() {
         let interceptor = SortResultInterceptorFactory.try_new("").unwrap();
 
         let cases = [
@@ -145,13 +146,13 @@ mod tests {
         ];
 
         for (mut input, expected) in cases {
-            interceptor.after_execute(&mut input);
+            interceptor.after_execute(&mut input).await;
             assert_eq!(input, expected);
         }
     }
 
-    #[test]
-    fn ignore_head_exceeds_length() {
+    #[tokio::test]
+    async fn ignore_head_exceeds_length() {
         let interceptor = SortResultInterceptorFactory.try_new("10000").unwrap();
 
         let mut exec_result = String::from(
@@ -160,12 +161,12 @@ mod tests {
             \n1",
         );
         let expected = exec_result.clone();
-        interceptor.after_execute(&mut exec_result);
+        interceptor.after_execute(&mut exec_result).await;
         assert_eq!(exec_result, expected);
     }
 
-    #[test]
-    fn ignore_tail_exceeds_length() {
+    #[tokio::test]
+    async fn ignore_tail_exceeds_length() {
         let interceptor = SortResultInterceptorFactory.try_new("0 10000").unwrap();
 
         let mut exec_result = String::from(
@@ -174,7 +175,7 @@ mod tests {
             \n1",
         );
         let expected = exec_result.clone();
-        interceptor.after_execute(&mut exec_result);
+        interceptor.after_execute(&mut exec_result).await;
         assert_eq!(exec_result, expected);
     }
 }

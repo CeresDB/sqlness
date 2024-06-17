@@ -25,8 +25,9 @@ pub struct ArgInterceptor {
     args: Vec<(String, String)>,
 }
 
+#[async_trait::async_trait]
 impl Interceptor for ArgInterceptor {
-    fn before_execute(&self, _: &mut Vec<String>, context: &mut QueryContext) {
+    async fn before_execute(&self, _: &mut Vec<String>, context: &mut QueryContext) {
         for (key, value) in &self.args {
             context.context.insert(key.to_string(), value.to_string());
         }

@@ -39,8 +39,9 @@ pub struct EnvInterceptor {
     data: HashMap<String, String>,
 }
 
+#[async_trait::async_trait]
 impl Interceptor for EnvInterceptor {
-    fn before_execute(&self, execute_query: &mut Vec<String>, _: &mut QueryContext) {
+    async fn before_execute(&self, execute_query: &mut Vec<String>, _: &mut QueryContext) {
         for line in execute_query {
             for (key, value) in &self.data {
                 let rendered = line.replace(key, value);

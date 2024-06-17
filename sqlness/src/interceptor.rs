@@ -17,17 +17,19 @@ use crate::{
 pub mod arg;
 pub mod env;
 pub mod replace;
+pub mod sleep;
 pub mod sort_result;
 pub mod template;
 
-pub type InterceptorRef = Box<dyn Interceptor>;
+pub type InterceptorRef = Box<dyn Interceptor + Send + Sync>;
 
+#[async_trait::async_trait]
 pub trait Interceptor {
     #[allow(unused_variables)]
-    fn before_execute(&self, execute_query: &mut Vec<String>, context: &mut QueryContext) {}
+    async fn before_execute(&self, execute_query: &mut Vec<String>, context: &mut QueryContext) {}
 
     #[allow(unused_variables)]
-    fn after_execute(&self, result: &mut String) {}
+    async fn after_execute(&self, result: &mut String) {}
 }
 
 pub type InterceptorFactoryRef = Arc<dyn InterceptorFactory>;
@@ -92,6 +94,10 @@ fn builtin_interceptors() -> HashMap<String, InterceptorFactoryRef> {
         (
             template::PREFIX.to_string(),
             Arc::new(TemplateInterceptorFactory {}) as _,
+        ),
+        (
+            sleep::PREFIX.to_string(),
+            Arc::new(sleep::SleepInterceptorFactory {}) as _,
         ),
     ]
     .into_iter()

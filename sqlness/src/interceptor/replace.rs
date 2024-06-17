@@ -39,8 +39,9 @@ pub struct ReplaceInterceptor {
     replacement: String,
 }
 
+#[async_trait::async_trait]
 impl Interceptor for ReplaceInterceptor {
-    fn after_execute(&self, result: &mut String) {
+    async fn after_execute(&self, result: &mut String) {
         let re = Regex::new(&self.pattern).unwrap();
         let replaced = re.replace_all(result, &self.replacement);
         *result = replaced.to_string();
@@ -84,21 +85,21 @@ mod tests {
         assert!(interceptor.is_err());
     }
 
-    #[test]
-    fn replace_without_replacement() {
+    #[tokio::test]
+    async fn replace_without_replacement() {
         let interceptor = ReplaceInterceptorFactory {}.try_new("0").unwrap();
 
         let mut exec_result = "000010101".to_string();
-        interceptor.after_execute(&mut exec_result);
+        interceptor.after_execute(&mut exec_result).await;
         assert_eq!(exec_result, "111".to_string());
     }
 
-    #[test]
-    fn simple_replace() {
+    #[tokio::test]
+    async fn simple_replace() {
         let interceptor = ReplaceInterceptorFactory {}.try_new("00 2").unwrap();
 
         let mut exec_result = "0000010101".to_string();
-        interceptor.after_execute(&mut exec_result);
+        interceptor.after_execute(&mut exec_result).await;
         assert_eq!(exec_result, "22010101".to_string());
     }
 }

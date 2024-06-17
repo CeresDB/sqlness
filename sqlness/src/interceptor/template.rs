@@ -46,8 +46,13 @@ fn sql_delimiter() -> std::result::Result<String, minijinja::Error> {
     Ok(";".to_string())
 }
 
+#[async_trait::async_trait]
 impl Interceptor for TemplateInterceptor {
-    fn before_execute(&self, execute_query: &mut Vec<String>, _context: &mut crate::QueryContext) {
+    async fn before_execute(
+        &self,
+        execute_query: &mut Vec<String>,
+        _context: &mut crate::QueryContext,
+    ) {
         let input = execute_query.join("\n");
         let mut env = Environment::new();
         env.add_function("sql_delimiter", sql_delimiter);
@@ -59,8 +64,6 @@ impl Interceptor for TemplateInterceptor {
             .map(|v| v.to_string())
             .collect::<Vec<_>>();
     }
-
-    fn after_execute(&self, _result: &mut String) {}
 }
 
 impl InterceptorFactory for TemplateInterceptorFactory {
@@ -83,20 +86,22 @@ impl InterceptorFactory for TemplateInterceptorFactory {
 mod tests {
     use super::*;
 
-    #[test]
-    fn basic_template() {
+    #[tokio::test]
+    async fn basic_template() {
         let interceptor = TemplateInterceptorFactory
             .try_new(r#"{"name": "test"}"#)
             .unwrap();
 
         let mut input = vec!["SELECT * FROM table where name = '{{name}}'".to_string()];
-        interceptor.before_execute(&mut input, &mut crate::QueryContext::default());
+        interceptor
+            .before_execute(&mut input, &mut crate::QueryContext::default())
+            .await;
 
         assert_eq!(input, vec!["SELECT * FROM table where name = 'test'"]);
     }
 
-    #[test]
-    fn vector_template() {
+    #[tokio::test]
+    async fn vector_template() {
         let interceptor = TemplateInterceptorFactory
             .try_new(r#"{"aggr": ["sum", "count", "avg"]}"#)
             .unwrap();
@@ -108,7 +113,9 @@ mod tests {
         ]
         .map(|v| v.to_string())
         .to_vec();
-        interceptor.before_execute(&mut input, &mut crate::QueryContext::default());
+        interceptor
+            .before_execute(&mut input, &mut crate::QueryContext::default())
+            .await;
 
         assert_eq!(
             input,
@@ -123,8 +130,8 @@ mod tests {
         );
     }
 
-    #[test]
-    fn range_template() {
+    #[tokio::test]
+    async fn range_template() {
         let interceptor = TemplateInterceptorFactory.try_new(r#""#).unwrap();
 
         let mut input = [
@@ -136,7 +143,9 @@ mod tests {
         ]
         .map(|v| v.to_string())
         .to_vec();
-        interceptor.before_execute(&mut input, &mut crate::QueryContext::default());
+        interceptor
+            .before_execute(&mut input, &mut crate::QueryContext::default())
+            .await;
 
         assert_eq!(
             input,
