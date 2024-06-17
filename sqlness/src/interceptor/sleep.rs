@@ -23,6 +23,17 @@ pub static TIMER_WHEEL: Lazy<
 
 pub const PREFIX: &str = "SLEEP";
 
+/// Sleep for given milliseconds before executing the query.
+///
+/// # Example
+/// ``` sql
+/// -- SQLNESS SLEEP 1500
+/// SELECT 1;
+/// ```
+///
+/// Note that this implementation is not accurate and may be affected by the system load.
+/// It is guaranteed that the sleep time is at least the given milliseconds, but the lag may be
+/// longer.
 #[derive(Debug)]
 pub struct SleepInterceptor {
     milliseconds: u64,
