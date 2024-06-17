@@ -92,3 +92,18 @@ impl InterceptorFactory for SleepInterceptorFactory {
         Ok(Box::new(SleepInterceptor { milliseconds }))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[tokio::test]
+    async fn wait_1500ms() {
+        let input = "1500";
+        let interceptor = SleepInterceptorFactory{}.try_new(input).unwrap();
+        let now = Instant::now();
+        interceptor.before_execute(&mut vec![], &mut crate::QueryContext::default()).await;
+        let elasped = now.elapsed().as_millis() as u64;
+        assert!(elasped >= 1500);
+    }
+}
