@@ -121,6 +121,7 @@ mod tests {
         );
     }
 
+    #[test]
     fn range_template() {
         let interceptor = TemplateInterceptorFactory.try_new(r#""#).unwrap();
 
@@ -133,8 +134,7 @@ mod tests {
         ]
         .map(|v| v.to_string())
         .to_vec();
-        interceptor
-            .before_execute(&mut input, &mut crate::QueryContext::default());
+        interceptor.before_execute(&mut input, &mut crate::QueryContext::default());
 
         assert_eq!(
             input,
