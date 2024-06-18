@@ -23,7 +23,30 @@ pub const PREFIX: &str = "SLEEP";
 /// longer.
 #[derive(Debug)]
 pub struct SleepInterceptor {
-    milliseconds: u64,
+    duration: Duration,
+}
+
+struct Sleep {
+    now: Instant,
+    duration: Duration,
+}
+impl core::future::Future for Sleep {
+    type Output = ();
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> std::task::Poll<Self::Output> {
+        let elapsed = self.now.elapsed();
+        if elapsed < self.duration {
+            let waker = cx.waker().clone();
+            // detach the thread and let it wake the waker later
+            let remaining = self.duration.saturating_sub(elapsed);
+            std::thread::spawn(move || {
+                std::thread::sleep(remaining);
+                waker.wake();
+            });
+            std::task::Poll::Pending
+        } else {
+            std::task::Poll::Ready(())
+        }
+    }
 }
 
 #[async_trait::async_trait]
@@ -34,31 +57,9 @@ impl Interceptor for SleepInterceptor {
         _context: &mut crate::case::QueryContext,
     ) {
         // impl a cross-runtime sleep
-        struct Sleep {
-            now: Instant,
-            milliseconds: u64,
-        }
-        impl core::future::Future for Sleep {
-            type Output = ();
-            fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> std::task::Poll<Self::Output> {
-                let elapsed = self.now.elapsed().as_millis() as u64;
-                let remaining = self.milliseconds.saturating_sub(elapsed);
-                if elapsed < self.milliseconds {
-                    let waker = cx.waker().clone();
-                    // detach the thread and let it wake the waker later
-                    std::thread::spawn(move || {
-                        std::thread::sleep(Duration::from_millis(remaining));
-                        waker.wake();
-                    });
-                    std::task::Poll::Pending
-                } else {
-                    std::task::Poll::Ready(())
-                }
-            }
-        }
         Sleep {
             now: Instant::now(),
-            milliseconds: self.milliseconds,
+            duration: self.duration,
         }
         .await;
     }
@@ -74,7 +75,9 @@ impl InterceptorFactory for SleepInterceptorFactory {
                 prefix: PREFIX.to_string(),
                 msg: format!("Failed to parse milliseconds: {}", e),
             })?;
-        Ok(Box::new(SleepInterceptor { milliseconds }))
+        Ok(Box::new(SleepInterceptor {
+            duration: Duration::from_millis(milliseconds),
+        }))
     }
 }
 
