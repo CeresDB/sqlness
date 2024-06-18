@@ -10,14 +10,20 @@ use crate::SqlnessError;
 
 pub const PREFIX: &str = "SLEEP";
 
-/// Sleep for given milliseconds before executing the query.
+/// Sleep for given duration before executing the query.
 ///
 /// # Example
 /// ``` sql
-/// -- SQLNESS SLEEP 1500
+/// -- SQLNESS SLEEP <Duration>
 /// SELECT 1;
 /// ```
 ///
+/// valid duration format:
+/// - `1s` for 1 second
+/// - `1ms` for 1 millisecond
+/// - `1s500ms` for 1.5 seconds
+/// etc. See detailed format in [duration_str](https://docs.rs/duration-str/0.11.2/duration_str/) crate
+/// 
 /// Note that this implementation is not accurate and may be affected by the system load.
 /// It is guaranteed that the sleep time is at least the given milliseconds, but the lag may be
 /// longer.
@@ -69,15 +75,11 @@ pub struct SleepInterceptorFactory;
 
 impl InterceptorFactory for SleepInterceptorFactory {
     fn try_new(&self, ctx: &str) -> Result<InterceptorRef> {
-        let milliseconds = ctx
-            .parse::<u64>()
-            .map_err(|e| SqlnessError::InvalidContext {
-                prefix: PREFIX.to_string(),
-                msg: format!("Failed to parse milliseconds: {}", e),
-            })?;
-        Ok(Box::new(SleepInterceptor {
-            duration: Duration::from_millis(milliseconds),
-        }))
+        let duration = duration_str::parse(ctx).map_err(|e| SqlnessError::InvalidContext {
+            prefix: PREFIX.to_string(),
+            msg: format!("Failed to parse duration: {}", e),
+        })?;
+        Ok(Box::new(SleepInterceptor { duration }))
     }
 }
 
@@ -87,7 +89,7 @@ mod test {
 
     #[tokio::test]
     async fn wait_1500ms() {
-        let input = "1500";
+        let input = "1s500ms";
         let interceptor = SleepInterceptorFactory {}.try_new(input).unwrap();
         let now = Instant::now();
         interceptor
