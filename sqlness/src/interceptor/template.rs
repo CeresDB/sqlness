@@ -59,8 +59,6 @@ impl Interceptor for TemplateInterceptor {
             .map(|v| v.to_string())
             .collect::<Vec<_>>();
     }
-
-    fn after_execute(&self, _result: &mut String) {}
 }
 
 impl InterceptorFactory for TemplateInterceptorFactory {

@@ -142,7 +142,7 @@ impl Query {
     where
         W: Write,
     {
-        let context = self.before_execute_intercept();
+        let context = self.before_execute_intercept().await;
         for comment in &self.comment_lines {
             writer.write_all(comment.as_bytes())?;
             writer.write_all("\n".as_bytes())?;
@@ -160,7 +160,7 @@ impl Query {
                     .query(context.clone(), format!("{sql};"))
                     .await
                     .to_string();
-                self.after_execute_intercept(&mut result);
+                self.after_execute_intercept(&mut result).await;
                 self.write_result(writer, result)?;
             }
         }
@@ -172,19 +172,21 @@ impl Query {
     ///
     /// Interceptors may change either the query to be displayed or the query to be executed,
     /// so we need to return the query to caller.
-    fn before_execute_intercept(&mut self) -> QueryContext {
+    async fn before_execute_intercept(&mut self) -> QueryContext {
         let mut context = QueryContext::default();
 
         for interceptor in &self.interceptors {
-            interceptor.before_execute(&mut self.execute_query, &mut context);
+            interceptor
+                .before_execute_async(&mut self.execute_query, &mut context)
+                .await;
         }
 
         context
     }
 
-    fn after_execute_intercept(&mut self, result: &mut String) {
+    async fn after_execute_intercept(&mut self, result: &mut String) {
         for interceptor in &self.interceptors {
-            interceptor.after_execute(result);
+            interceptor.after_execute_async(result).await;
         }
     }
 
