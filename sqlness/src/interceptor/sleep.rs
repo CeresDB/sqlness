@@ -23,7 +23,7 @@ pub const PREFIX: &str = "SLEEP";
 /// - `1ms` for 1 millisecond
 /// - `1s500ms` for 1.5 seconds
 /// etc. See detailed format in [duration_str](https://docs.rs/duration-str/0.11.2/duration_str/) crate
-/// 
+///
 /// Note that this implementation is not accurate and may be affected by the system load.
 /// It is guaranteed that the sleep time is at least the given milliseconds, but the lag may be
 /// longer.
