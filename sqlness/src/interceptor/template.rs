@@ -10,6 +10,7 @@ use crate::SqlnessError;
 pub struct TemplateInterceptorFactory;
 
 pub const PREFIX: &str = "TEMPLATE";
+pub const DELIMITER: &str = "__sqlness_delimiter__";
 
 /// Templated query, powered by [minijinja](https://github.com/mitsuhiko/minijinja).
 /// The template syntax can be found [here](https://docs.rs/minijinja/latest/minijinja/syntax/index.html).
@@ -43,7 +44,7 @@ pub struct TemplateInterceptor {
 }
 
 fn sql_delimiter() -> std::result::Result<String, minijinja::Error> {
-    Ok(";".to_string())
+    Ok(DELIMITER.to_string())
 }
 
 impl Interceptor for TemplateInterceptor {
