@@ -63,3 +63,6 @@ INSERT INTO t (c) VALUES
 4
 2
 2;
+
+-- Test case for https://github.com/CeresDB/sqlness/issues/68
+INSERT INTO timestamp VALUES ('1900-1-1 00;00;00');

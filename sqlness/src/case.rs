@@ -154,12 +154,14 @@ impl Query {
 
         let sql = self.concat_query_lines();
         // An intercetor may generate multiple SQLs, so we need to split them.
-        for sql in sql.split(QUERY_DELIMITER) {
+        for sql in sql.split(crate::interceptor::template::DELIMITER) {
             if !sql.trim().is_empty() {
-                let mut result = db
-                    .query(context.clone(), format!("{sql};"))
-                    .await
-                    .to_string();
+                let sql = if sql.ends_with(QUERY_DELIMITER) {
+                    sql.to_string()
+                } else {
+                    format!("{sql};")
+                };
+                let mut result = db.query(context.clone(), sql).await.to_string();
                 self.after_execute_intercept(&mut result).await;
                 self.write_result(writer, result)?;
             }
