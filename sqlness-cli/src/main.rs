@@ -91,7 +91,7 @@ impl CliController {
 impl EnvController for CliController {
     type DB = DBProxy;
 
-    async fn start(&self, _env: &str, _config: Option<&Path>) -> Self::DB {
+    async fn start(&self, _env: &str, _id: usize, _config: Option<&Path>) -> Self::DB {
         DBProxy::new(self.db_config.clone(), self.db_type)
     }
 
@@ -112,6 +112,7 @@ fn main() {
 
     let config = ConfigBuilder::default()
         .case_dir(args.case_dir)
+        .parallelism(1)
         .build()
         .expect("build config");
 

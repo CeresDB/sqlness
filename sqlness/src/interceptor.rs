@@ -46,7 +46,7 @@ pub trait Interceptor {
     }
 }
 
-pub type InterceptorFactoryRef = Arc<dyn InterceptorFactory>;
+pub type InterceptorFactoryRef = Arc<dyn InterceptorFactory + Send + Sync>;
 
 pub trait InterceptorFactory {
     fn try_new(&self, ctx: &str) -> Result<InterceptorRef>;

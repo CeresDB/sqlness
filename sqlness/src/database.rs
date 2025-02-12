@@ -15,6 +15,6 @@ use crate::case::QueryContext;
 /// [`Runner`]: crate::Runner
 /// [`EnvController::start`]: crate::EnvController#tymethod.start
 #[async_trait]
-pub trait Database {
+pub trait Database: Send + Sync {
     async fn query(&self, context: QueryContext, query: String) -> Box<dyn Display>;
 }

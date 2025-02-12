@@ -6,7 +6,7 @@ use derive_builder::Builder;
 /// Configurations of [`Runner`].
 ///
 /// [`Runner`]: crate::Runner
-#[derive(Builder)]
+#[derive(Builder, Clone)]
 pub struct Config {
     pub case_dir: String,
     /// Default value: `sql`
@@ -38,6 +38,9 @@ pub struct Config {
     /// Interceptors used to pre-process input query and post-process query response
     #[builder(default = "Config::default_registry()")]
     pub interceptor_registry: Registry,
+    /// Default value: 1
+    #[builder(default = "Config::default_parallelism()")]
+    pub parallelism: usize,
 }
 
 impl Config {
@@ -75,6 +78,10 @@ impl Config {
 
     fn default_registry() -> Registry {
         Registry::default()
+    }
+
+    fn default_parallelism() -> usize {
+        1
     }
 }
 

@@ -4,6 +4,7 @@ use std::fs::{read_dir, OpenOptions};
 use std::io::{Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use prettydiff::basic::{DiffOp, SliceChangeset};
@@ -59,9 +60,17 @@ impl<E: EnvController> Runner<E> {
             } else {
                 None
             };
-            let db = self.env_controller.start(&env, config_path).await;
-            let run_result = self.run_env(&env, &db).await;
-            self.env_controller.stop(&env, db).await;
+            let parallelism = self.config.parallelism.max(1);
+            let mut databases = Vec::with_capacity(parallelism);
+            println!("Creating enviroment with parallelism: {}", parallelism);
+            for id in 0..parallelism {
+                let db = self.env_controller.start(&env, id, config_path).await;
+                databases.push(db);
+            }
+            let run_result = self.run_env(&env, &databases).await;
+            for db in databases {
+                self.env_controller.stop(&env, db).await;
+            }
 
             if let Err(e) = run_result {
                 println!("Environment {env} run failed, error:{e:?}.");
@@ -105,28 +114,60 @@ impl<E: EnvController> Runner<E> {
         Ok(result)
     }
 
-    async fn run_env(&self, env: &str, db: &E::DB) -> Result<()> {
+    async fn run_env(&self, env: &str, databases: &[E::DB]) -> Result<()> {
         let case_paths = self.collect_case_paths(env).await?;
-        let mut failed_cases = vec![];
-        let mut errors = vec![];
         let start = Instant::now();
-        for path in case_paths {
-            let is_success = self.run_single_case(db, &path).await;
-            let case_name = path.as_os_str().to_str().unwrap().to_owned();
-            match is_success {
-                Ok(false) => failed_cases.push(case_name),
-                Ok(true) => {}
-                Err(e) => {
-                    if self.config.fail_fast {
-                        println!("Case {case_name} failed with error {e:?}");
-                        println!("Stopping environment {env} due to previous error.");
-                        break;
-                    } else {
-                        errors.push((case_name, e))
+
+        let case_queue = Arc::new(Mutex::new(case_paths));
+        let failed_cases = Arc::new(Mutex::new(Vec::new()));
+        let errors = Arc::new(Mutex::new(Vec::new()));
+
+        let mut futures = Vec::new();
+
+        // Create futures for each database to process cases
+        for (db_idx, db) in databases.iter().enumerate() {
+            let case_queue = case_queue.clone();
+            let failed_cases = failed_cases.clone();
+            let errors = errors.clone();
+            let fail_fast = self.config.fail_fast;
+
+            futures.push(async move {
+                loop {
+                    // Try to get next case from the queue
+                    let next_case = {
+                        let mut queue = case_queue.lock().expect("Failed to lock case_queue mutex");
+                        if queue.is_empty() {
+                            break;
+                        }
+                        queue.pop().unwrap()
+                    };
+
+                    let case_name = next_case.as_os_str().to_str().unwrap().to_owned();
+                    match self.run_single_case(db, &next_case).await {
+                        Ok(false) => {
+                            println!("[DB-{:2}] Case {} failed", db_idx, case_name);
+                            failed_cases.lock().unwrap().push(case_name);
+                        }
+                        Ok(true) => {
+                            println!("[DB-{:2}] Case {} succeeded", db_idx, case_name);
+                        }
+                        Err(e) => {
+                            println!(
+                                "[DB-{:2}] Case {} failed with error {:?}",
+                                db_idx, case_name, e
+                            );
+                            if fail_fast {
+                                errors.lock().expect("Failed to acquire lock on errors").push((case_name, e));
+                                return;
+                            }
+                            errors.lock().expect("Failed to acquire lock on errors").push((case_name, e));
+                        }
                     }
                 }
-            }
+            });
         }
+
+        futures::future::join_all(futures).await;
 
         println!(
             "Environment {} run finished, cost:{}ms",
@@ -134,11 +175,13 @@ impl<E: EnvController> Runner<E> {
             start.elapsed().as_millis()
         );
 
+        let failed_cases = failed_cases.lock().unwrap();
         if !failed_cases.is_empty() {
             println!("Failed cases:");
             println!("{failed_cases:#?}");
         }
 
+        let errors = errors.lock().unwrap();
         if !errors.is_empty() {
             println!("Error cases:");
             println!("{errors:#?}");

@@ -12,12 +12,12 @@ struct MyDB;
 impl Database for MyDB {
     async fn query(&self, _context: QueryContext, _query: String) -> Box<dyn Display> {
         // Implement query logic here
-        return Box::new("ok".to_string());
+        Box::new("ok")
     }
 }
 
 impl MyDB {
-    fn new(_env: &str, _config: Option<&Path>) -> Self {
+    fn new(_env: &str, _id: usize, _config: Option<&Path>) -> Self {
         MyDB
     }
 
@@ -30,9 +30,9 @@ impl MyDB {
 impl EnvController for MyController {
     type DB = MyDB;
 
-    async fn start(&self, env: &str, config: Option<&Path>) -> Self::DB {
-        println!("Start, env:{env}, config:{config:?}.");
-        MyDB::new(env, config)
+    async fn start(&self, env: &str, id: usize, config: Option<&Path>) -> Self::DB {
+        println!("Start, env:{env}, id:{id}, config:{config:?}.");
+        MyDB::new(env, id, config)
     }
 
     async fn stop(&self, env: &str, database: Self::DB) {

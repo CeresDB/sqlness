@@ -18,16 +18,20 @@ use crate::database::Database;
 /// directories of test case directory. Refer to crate level documentation for more information
 /// about directory organizaiton rules.
 #[async_trait]
-pub trait EnvController {
+pub trait EnvController: Send + Sync {
     type DB: Database;
 
     /// Start a [`Database`] to run test queries.
     ///
-    /// Two parameters are the mode of this environment, or environment's name.
-    /// And the config file's path to this environment if it's find, it's defined
-    /// by the `env_config_file` field in the root config toml, and the default
+    /// Three parameters are the mode of this environment, or environment's name,
+    /// the id of this database instance, and the config file's path to this environment if it's find,
+    /// it's defined by the `env_config_file` field in the root config toml, and the default
     /// value is `config.toml`.
-    async fn start(&self, env: &str, config: Option<&Path>) -> Self::DB;
+    ///
+    /// The id is used to distinguish different database instances in the same environment.
+    /// For example, you may want to run the sqlness test in parallel against different instances
+    /// of the same environment to accelerate the test.
+    async fn start(&self, env: &str, id: usize, config: Option<&Path>) -> Self::DB;
 
     /// Stop one [`Database`].
     async fn stop(&self, env: &str, database: Self::DB);
